@@ -1,37 +1,59 @@
-# Licence / License
+======================================================================
+                          LICENCE / LICENSE
+======================================================================
 
-*(English version below)*
+----------------------------------------------------------------------
+      FR - LICENCE CC BY-NC 4.0 (Attribution - Pas d'Utilisation
+                            Commerciale)
+----------------------------------------------------------------------
 
----
+Ce projet et l'ensemble de son contenu (notamment le code source,
+les scripts, les ressources graphiques et sonores, ainsi que la 
+documentation) sont mis à disposition selon les termes de la licence 
+Creative Commons Attribution - Pas d'Utilisation Commerciale 4.0 
+International.
 
-## Licence CC BY-NC 4.0 (Attribution - Pas d’Utilisation Commerciale)
+VOUS ÊTES AUTORISÉ À :
+  - Partager : copier, distribuer et communiquer le matériel par 
+    tous moyens et sous tous formats.
+  - Adapter : remixer, transformer et créer à partir du matériel.
 
-Ce projet et l'ensemble de son contenu (notamment le code source, les scripts, les ressources graphiques et sonores, ainsi que la documentation) sont mis à disposition selon les termes de la licence **Creative Commons Attribution - Pas d’Utilisation Commerciale 4.0 International**.
+SELON LES CONDITIONS SUIVANTES :
+  - Attribution : Vous devez créditer l'auteur original, intégrer 
+    un lien vers la licence et indiquer si des modifications ont 
+    été effectuées. Vous devez indiquer ces informations par tous 
+    les moyens raisonnables.
+  - Pas d'Utilisation Commerciale : Vous n'êtes pas autorisé à faire 
+    un usage commercial de cette œuvre, de tout ou partie du matériel 
+    (vente, intégration dans un projet commercialisé, publicités, 
+    micro-transactions).
 
-### Vous êtes autorisé à :
-* **Partager** — copier, distribuer et communiquer le matériel par tous moyens et sous tous formats.
-* **Adapter** — remixer, transformer et créer à partir du matériel.
+Texte légal complet : 
+https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr
 
-### Selon les conditions suivantes :
-* **Attribution** — Vous devez créditer l'auteur original, intégrer un lien vers la licence et indiquer si des modifications ont été effectuées. Vous devez indiquer ces informations par tous les moyens raisonnables, sans toutefois suggérer que l'auteur vous soutient ou soutient la façon dont vous avez utilisé son œuvre.
-* **Pas d’Utilisation Commerciale** — Vous n'êtes pas autorisé à faire un usage commercial de cette œuvre, de tout ou partie du matériel (vente, intégration dans un projet commercialisé, publicités, micro-transactions).
 
-Pour consulter une copie complète du texte légal de cette licence, veuillez visiter :
-[https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr](https://creativecommons.org/licenses/by-nc/4.0/legalcode.fr)
+----------------------------------------------------------------------
+        EN - CC BY-NC 4.0 LICENSE (Attribution-NonCommercial)
+----------------------------------------------------------------------
 
----
+This project and all its content (including source code, scripts, 
+visual and audio assets, and documentation) are licensed under the 
+Creative Commons Attribution-NonCommercial 4.0 International license.
 
-## CC BY-NC 4.0 License (Attribution-NonCommercial)
+YOU ARE FREE TO:
+  - Share : copy and redistribute the material in any medium or 
+    format.
+  - Adapt : remix, transform, and build upon the material.
 
-This project and all its content (including source code, scripts, visual and audio assets, and documentation) are licensed under the **Creative Commons Attribution-NonCommercial 4.0 International** license.
+UNDER THE FOLLOWING TERMS:
+  - Attribution : You must give appropriate credit, provide a link 
+    to the license, and indicate if changes were made. You may do 
+    so in any reasonable manner.
+  - NonCommercial : You may not use the material for commercial 
+    purposes (sales, integration into a commercialized project, 
+    ads, micro-transactions).
 
-### You are free to:
-* **Share** — copy and redistribute the material in any medium or format.
-* **Adapt** — remix, transform, and build upon the material.
+Full legal text: 
+https://creativecommons.org/licenses/by-nc/4.0/legalcode.en
 
-### Under the following terms:
-* **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-* **NonCommercial** — You may not use the material for commercial purposes (sales, integration into a commercialized project, ads, micro-transactions).
-
-To view a copy of the full legal text of this license, please visit:
-[https://creativecommons.org/licenses/by-nc/4.0/legalcode.en](https://creativecommons.org/licenses/by-nc/4.0/legalcode.en)
+======================================================================
