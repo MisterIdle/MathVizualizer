@@ -1,0 +1,288 @@
+.ms-input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+.ms-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.ms-btn {
+  padding: 7px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.ms-btn:hover {
+  border-color: var(--accent-primary);
+}
+
+.ms-btn-ghost {
+  background-color: transparent;
+}
+
+.ms-nav-group {
+  margin-bottom: 14px;
+}
+
+.ms-nav-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 6px 10px;
+}
+
+.ms-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ms-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13.5px;
+}
+
+.ms-nav-link:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.ms-nav-link.is-active {
+  background-color: var(--accent-soft);
+  color: var(--accent-primary);
+  font-weight: 600;
+  border-left: 3px solid var(--accent-primary);
+}
+
+.ms-article-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.ms-article-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.ms-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ms-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.ms-article-summary {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.ms-section {
+  margin-bottom: 36px;
+}
+
+.ms-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ms-formula-box {
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: 4px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.ms-examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.ms-example-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--accent-primary);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.ms-example-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.ms-example-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ms-sandbox-card {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.ms-sandbox-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ms-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.ms-control-group label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.ms-control-value {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  min-width: 40px;
+  color: var(--accent-primary);
+}
+
+.ms-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 460px;
+  background-color: var(--bg-canvas);
+  cursor: grab;
+  user-select: none;
+}
+
+.ms-canvas-container:active {
+  cursor: grabbing;
+}
+
+.ms-canvas-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ms-sandbox-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ms-code-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.ms-code-card {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-code);
+  overflow: hidden;
+}
+
+.ms-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ms-code-pre {
+  padding: 14px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.ms-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.ms-table th,
+.ms-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.ms-table th {
+  background-color: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ms-point-pill {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}

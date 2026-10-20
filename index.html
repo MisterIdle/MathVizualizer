@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation Interactive</title>
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body>
+  <header class="ms-header">
+    <div class="ms-header-left">
+      <a href="#cos" class="ms-brand">
+        <span class="ms-brand-icon">π</span>
+        <div class="ms-header-title-group">
+            <span class="ms-brand-title">Math Vizualizer</span>
+            <span class="ms-header-author">Par Alexy HOUBLOUP / MisterIdle</span>
+        </div>
+      </a>
+      <span class="ms-header-divider"></span>
+      <span class="ms-header-product">Unity Mathf / .NET MathF / Godot</span>
+    </div>
+    <div class="ms-header-right">
+      <button id="theme-toggle" class="ms-btn ms-btn-ghost" type="button">Thème Clair / Sombre</button>
+    </div>
+  </header>
+
+  <nav class="ms-breadcrumb-bar">
+    <div class="ms-breadcrumb" id="breadcrumb-container"></div>
+  </nav>
+
+  <div class="ms-layout">
+    <aside class="ms-sidebar">
+      <div class="ms-sidebar-search">
+        <input type="search" id="sidebar-filter" class="ms-input" placeholder="Filtrer par fonction (ex: Cos, Dot, Lerp)...">
+      </div>
+      <nav id="sidebar-nav" class="ms-nav-tree"></nav>
+    </aside>
+
+    <main class="ms-main">
+      <article id="page-content" class="ms-article"></article>
+    </main>
+
+    <aside class="ms-toc">
+      <div class="ms-toc-inner">
+        <h2 class="ms-toc-title">Dans cet article</h2>
+        <ul class="ms-toc-list">
+          <li><a href="#section-definition">Définition</a></li>
+          <li><a href="#section-sandbox">Playground Interactif</a></li>
+          <li><a href="#section-code">Code Temps Réel (Unity / C# / Godot)</a></li>
+          <li><a href="#section-parameters">Valeurs des Points & Paramètres</a></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
