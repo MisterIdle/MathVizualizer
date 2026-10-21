@@ -603,5 +603,10 @@ export const MATH_CATALOG = [
       { title: "2. Chauffer du métal dans une forge", desc: "Plus l'épée chauffe dans la forge, plus sa température Kelvin monte du rouge sombre au blanc éblouissant." },
       { title: "3. Éclairage intérieur (Ampoules vs Néons)", desc: "2700K donne une ambiance salon chaleureuse, 4000K donne un néon de bureau." }
     ]
+  },
+  {
+    id: "sandbox-live",
+    title: "⚡ Page Blanche (C# Live)",
+    category: "Laboratoire"
   }
 ];

@@ -158,6 +158,135 @@
   color: var(--accent-primary);
 }
 
+.ms-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.ms-brand-author {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.ms-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ms-btn-accent {
+  background-color: var(--accent-primary);
+  color: #ffffff;
+  text-decoration: none;
+  border-color: var(--accent-primary);
+}
+
+.ms-btn-accent:hover {
+  background-color: var(--accent-hover);
+}
+
+.cs-live-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  min-height: 540px;
+}
+
+@media (max-width: 1024px) {
+  .cs-live-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cs-editor-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-code);
+  overflow: hidden;
+  position: relative;
+}
+
+.cs-editor-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.cs-textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  padding: 16px;
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  resize: none;
+  outline: none;
+  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  tab-size: 4;
+}
+
+.cs-autocomplete {
+  position: absolute;
+  z-index: 50;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  max-height: 220px;
+  width: 280px;
+  overflow-y: auto;
+  display: none;
+  list-style: none;
+}
+
+.cs-autocomplete.is-open {
+  display: block;
+}
+
+.cs-autocomplete-item {
+  padding: 6px 12px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cs-autocomplete-item.is-selected,
+.cs-autocomplete-item:hover {
+  background-color: var(--accent-soft);
+  color: var(--accent-primary);
+}
+
+.cs-autocomplete-kind {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.cs-status-bar {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.cs-status-bar.is-error {
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
 @media (max-width: 1180px) {
   .ms-layout {
     grid-template-columns: 270px minmax(0, 1fr);
