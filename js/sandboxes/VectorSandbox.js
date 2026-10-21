@@ -147,7 +147,6 @@ export class VectorSandbox extends BaseSandbox {
     ctx.fill();
 
     if (label) {
-      ctx.fillStyle = color;
       ctx.font = "700 13px Segoe UI, sans-serif";
       ctx.fillText(label, x2 + 12, y2 - 6);
     }
@@ -165,6 +164,21 @@ export class VectorSandbox extends BaseSandbox {
       ctx.fillStyle = color;
       ctx.font = "700 13px Segoe UI, sans-serif";
       ctx.fillText(label, x + 14, y + 4);
+    }
+  }
+
+  drawPointWithLabelCustom(ctx, x, y, color, label, offsetX = 14, offsetY = 4) {
+    ctx.beginPath();
+    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    if (label) {
+      ctx.fillStyle = color;
+      ctx.font = "700 13px Segoe UI, sans-serif";
+      ctx.fillText(label, x + offsetX, y + offsetY);
     }
   }
 
@@ -186,7 +200,6 @@ export class VectorSandbox extends BaseSandbox {
       ctx.lineTo(this.width, cy + i * scale);
       ctx.stroke();
     }
-
     ctx.strokeStyle = colors.axis;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -204,13 +217,20 @@ export class VectorSandbox extends BaseSandbox {
       const dirX = this.currentB.x - this.currentA.x;
       const dirY = this.currentB.y - this.currentA.y;
 
-      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, "#fcc419", `Direction (${dirX.toFixed(1)}, ${dirY.toFixed(1)})`);
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `Joueur Pos (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
-      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, `Cible Target (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`);
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, "#fcc419", "");
+
+      const midX = (pA.x + pB.x) / 2;
+      const midY = (pA.y + pB.y) / 2;
+      ctx.fillStyle = "#fcc419";
+      ctx.font = "700 13px Consolas, monospace";
+      ctx.fillText(`Direction (${dirX.toFixed(2)}, ${dirY.toFixed(2)})`, midX + 10, midY - 12);
+
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Joueur Pos");
+      this.drawPointWithLabelCustom(ctx, pB.x, pB.y, colors.colorZ, "Cible Target", 14, 22);
 
       ctx.fillStyle = "#fcc419";
       ctx.font = "700 14px Segoe UI, sans-serif";
-      ctx.fillText(`Target - Pos = (${dirX.toFixed(2)}, ${dirY.toFixed(2)}) — Glissez le Joueur ou la Cible !`, 18, this.height - 16);
+      ctx.fillText(`Formule : Vector3 dir = Target - Pos = (${dirX.toFixed(2)}, ${dirY.toFixed(2)})`, 18, this.height - 16);
       return;
     }
 
@@ -228,9 +248,16 @@ export class VectorSandbox extends BaseSandbox {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, isInside ? "#ff6b6b" : "#51cf66", `${dist.toFixed(2)}m`);
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, isInside ? "#ff6b6b" : "#51cf66", "");
+      
+      const midX = (pA.x + pB.x) / 2;
+      const midY = (pA.y + pB.y) / 2;
+      ctx.fillStyle = isInside ? "#ff6b6b" : "#51cf66";
+      ctx.font = "700 13px Consolas, monospace";
+      ctx.fillText(`${dist.toFixed(2)}m`, midX - 15, midY - 12);
+
       this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Joueur (Centre Radar)");
-      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Ennemi");
+      this.drawPointWithLabelCustom(ctx, pB.x, pB.y, colors.colorZ, "Ennemi", 14, 22);
 
       ctx.fillStyle = isInside ? "#ff6b6b" : "#51cf66";
       ctx.font = "700 14px Segoe UI, sans-serif";
@@ -266,7 +293,7 @@ export class VectorSandbox extends BaseSandbox {
 
       this.drawArrow(ctx, pB.x, pB.y, cx, cy, colors.colorZ, "");
       this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Source Laser B (Glissez)");
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, "#fcc419", "Normale Mur A (Glissez)");
+      this.drawArrow(ctx, cx, cy, pNormA.x, pNormA.y, "#fcc419", "Normale Mur A (Glissez)");
       this.drawArrow(ctx, cx, cy, pRef.x, pRef.y, "#cc5de8", "Laser Rebondi (Reflect)");
 
       ctx.fillStyle = "#cc5de8";

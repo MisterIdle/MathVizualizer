@@ -1,4 +1,5 @@
 export const MATH_CATALOG = [
+
   {
     id: "direction",
     icon: "🧭",
