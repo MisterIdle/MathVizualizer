@@ -187,6 +187,54 @@
   background-color: var(--accent-hover);
 }
 
+.ms-footer {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding: 16px 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ms-footer-content {
+  max-width: 1680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ms-footer-left,
+.ms-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ms-footer-divider {
+  width: 1px;
+  height: 14px;
+  background-color: var(--border-color);
+}
+
+.ms-footer-version {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ms-footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.ms-footer-link:hover {
+  color: var(--accent-primary);
+}
+
 @media (max-width: 1024px) {
   .cs-live-workspace {
     grid-template-columns: 1fr;
