@@ -36,7 +36,7 @@ export class Space3DSandbox extends BaseSandbox {
       }
     };
 
-    if (this.mode === "qeuler") {
+    if (this.mode === "qeuler" || this.mode === "euler") {
       return [
         { type: "range", key: "pitch", label: "Pitch X (Haut/Bas °)", min: -90, max: 90, step: 1, value: this.pitch, onChange: (v) => { this.pitch = v; this.updateStateAndRender(); } },
         { type: "range", key: "yaw", label: "Yaw Y (Gauche/Droite °)", min: -180, max: 180, step: 1, value: this.yaw, onChange: (v) => { this.yaw = v; this.updateStateAndRender(); } },
@@ -91,8 +91,10 @@ export class Space3DSandbox extends BaseSandbox {
       const dx = pos.x - this.lastMouse.x;
       const dy = pos.y - this.lastMouse.y;
       this.lastMouse = pos;
+      
       this.camYaw += dx * 0.008;
-      this.camPitch = Math.max(-1.1, Math.min(1.2, this.camPitch + dy * 0.008));
+      this.camPitch = Math.max(-1.1, Math.min(1.2, this.camPitch - dy * 0.008));
+      
       this.render();
     });
     window.addEventListener("mouseup", () => {
@@ -183,13 +185,14 @@ export class Space3DSandbox extends BaseSandbox {
     return {
       x: this.width / 2 + x1 * scale,
       y: this.height / 2 - y2 * scale,
-      scale
+      scale,
+      depth: z2
     };
   }
 
   updateStateAndRender() {
     let q = { x: 0, y: 0, z: 0, w: 1 };
-    if (this.mode === "qeuler") {
+    if (this.mode === "qeuler" || this.mode === "euler") {
       q = this.eulerToQuat(this.pitch, this.yaw, this.roll);
     } else if (this.mode === "qangleaxis") {
       q = this.axisAngleToQuat(this.axisX, this.axisY, this.axisZ, this.angleDeg);
@@ -244,7 +247,7 @@ export class Space3DSandbox extends BaseSandbox {
       this.project3D({ x: 2.2, y: 0, z: 2.2 }),
       this.project3D({ x: -2.2, y: 0, z: 2.2 })
     ];
-    ctx.fillStyle = "rgba(120, 130, 145, 0.08)";
+    ctx.fillStyle = "rgba(120, 130, 145, 0.04)";
     ctx.beginPath();
     ctx.moveTo(floorCorners[0].x, floorCorners[0].y);
     floorCorners.forEach((c) => ctx.lineTo(c.x, c.y));
@@ -252,11 +255,11 @@ export class Space3DSandbox extends BaseSandbox {
     ctx.fill();
 
     for (let i = -2; i <= 2; i++) {
-      this.drawLine3D(ctx, { x: i, y: 0, z: -2.2 }, { x: i, y: 0, z: 2.2 }, colors.grid, 1);
-      this.drawLine3D(ctx, { x: -2.2, y: 0, z: i }, { x: 2.2, y: 0, z: i }, colors.grid, 1);
+      this.drawLine3D(ctx, { x: i, y: 0, z: -2.2 }, { x: i, y: 0, z: 2.2 }, colors.grid, 0.8);
+      this.drawLine3D(ctx, { x: -2.2, y: 0, z: i }, { x: 2.2, y: 0, z: i }, colors.grid, 0.8);
     }
 
-    this.drawLine3D(ctx, { x: 0, y: -2.0, z: 0 }, { x: 0, y: 0, z: 0 }, "rgba(81, 207, 102, 0.35)", 2, [4, 4]);
+    this.drawLine3D(ctx, { x: 0, y: -2.0, z: 0 }, { x: 0, y: 0, z: 0 }, "rgba(81, 207, 102, 0.2)", 1.5, [4, 4]);
     this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, { x: 0, y: 2.3, z: 0 }, "#51cf66", 2.5);
     this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, { x: 2.3, y: 0, z: 0 }, "#ff6b6b", 2);
     this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 2.3 }, "#4dabf7", 2);
@@ -266,33 +269,34 @@ export class Space3DSandbox extends BaseSandbox {
     const posX = this.project3D({ x: 2.45, y: 0, z: 0 });
     const posZ = this.project3D({ x: 0, y: 0, z: 2.45 });
 
-    ctx.font = "700 12px Segoe UI, sans-serif";
+    ctx.font = "700 11px Segoe UI, sans-serif";
     ctx.fillStyle = "#51cf66";
-    ctx.fillText("▲ HAUT (+Y / Ciel)", topY.x - 45, topY.y - 4);
+    ctx.fillText("▲ HAUT (+Y)", topY.x - 30, topY.y - 4);
     ctx.fillStyle = colors.muted;
-    ctx.fillText("▼ BAS (-Y / Sous le sol)", botY.x - 55, botY.y + 14);
+    ctx.fillText("▼ BAS (-Y)", botY.x - 30, botY.y + 14);
     ctx.fillStyle = "#ff6b6b";
-    ctx.fillText("DROITE (+X)", posX.x + 4, posX.y + 4);
+    ctx.fillText("X", posX.x + 4, posX.y + 4);
     ctx.fillStyle = "#4dabf7";
-    ctx.fillText("DEVANT (+Z)", posZ.x - 30, posZ.y + 14);
+    ctx.fillText("Z", posZ.x - 10, posZ.y + 14);
   }
 
   drawCornerGizmo(ctx, colors) {
-    const gx = this.width - 65;
-    const gy = 65;
-    const len = 34;
+    const gx = this.width - 55;
+    const gy = 55;
+    const len = 28;
 
-    ctx.fillStyle = "rgba(20, 20, 20, 0.65)";
+    ctx.fillStyle = "rgba(15, 15, 15, 0.75)";
     ctx.beginPath();
-    ctx.arc(gx, gy, 48, 0, Math.PI * 2);
+    ctx.arc(gx, gy, 40, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     const axes = [
-      { v: { x: 1, y: 0, z: 0 }, col: "#ff6b6b", lbl: "+X" },
-      { v: { x: 0, y: 1, z: 0 }, col: "#51cf66", lbl: "HAUT" },
-      { v: { x: 0, y: 0, z: 1 }, col: "#4dabf7", lbl: "+Z" }
+      { v: { x: 1, y: 0, z: 0 }, col: "#ff6b6b", lbl: "X" },
+      { v: { x: 0, y: 1, z: 0 }, col: "#51cf66", lbl: "Y" },
+      { v: { x: 0, y: 0, z: 1 }, col: "#4dabf7", lbl: "Z" }
     ];
 
     const cy = Math.cos(this.camYaw), sy = Math.sin(this.camYaw);
@@ -306,15 +310,15 @@ export class Space3DSandbox extends BaseSandbox {
       const ey = gy - y2 * len;
 
       ctx.strokeStyle = a.col;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(gx, gy);
       ctx.lineTo(ex, ey);
       ctx.stroke();
 
       ctx.fillStyle = a.col;
-      ctx.font = "700 10px Segoe UI, sans-serif";
-      ctx.fillText(a.lbl, ex - 10, ey - 4);
+      ctx.font = "700 9px Segoe UI, sans-serif";
+      ctx.fillText(a.lbl, ex - 4, ey - 4);
     });
   }
 
@@ -329,26 +333,32 @@ export class Space3DSandbox extends BaseSandbox {
     const verts = rawVerts.map((v) => this.rotateVecByQuat(v, quat));
     const projVerts = verts.map((v) => this.project3D(v));
 
+    const faces = [
+      { indices: [3, 2, 6, 7], color: `rgba(81, 207, 102, ${0.25 * alpha})` },
+      { indices: [0, 1, 5, 4], color: `rgba(120, 120, 120, ${0.1 * alpha})` },
+      { indices: [4, 5, 6, 7], color: `rgba(77, 171, 247, ${0.2 * alpha})` },
+      { indices: [0, 3, 7, 4], color: `rgba(255, 107, 107, ${0.12 * alpha})` },
+      { indices: [1, 2, 6, 5], color: `rgba(255, 107, 107, ${0.12 * alpha})` },
+      { indices: [0, 1, 2, 3], color: `rgba(100, 100, 100, ${0.1 * alpha})` }
+    ];
+
+    faces.forEach((f) => {
+      f.avgDepth = f.indices.reduce((sum, idx) => sum + projVerts[idx].depth, 0) / 4;
+    });
+    faces.sort((a, b) => a.avgDepth - b.avgDepth);
+
     ctx.save();
-    ctx.globalAlpha = alpha;
-
-    ctx.fillStyle = "rgba(81, 207, 102, 0.28)";
-    ctx.beginPath();
-    ctx.moveTo(projVerts[3].x, projVerts[3].y);
-    ctx.lineTo(projVerts[2].x, projVerts[2].y);
-    ctx.lineTo(projVerts[6].x, projVerts[6].y);
-    ctx.lineTo(projVerts[7].x, projVerts[7].y);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(77, 171, 247, 0.25)";
-    ctx.beginPath();
-    ctx.moveTo(projVerts[4].x, projVerts[4].y);
-    ctx.lineTo(projVerts[5].x, projVerts[5].y);
-    ctx.lineTo(projVerts[6].x, projVerts[6].y);
-    ctx.lineTo(projVerts[7].x, projVerts[7].y);
-    ctx.closePath();
-    ctx.fill();
+    faces.forEach((f) => {
+      ctx.fillStyle = f.color;
+      ctx.beginPath();
+      f.indices.forEach((idx, i) => {
+        const pt = projVerts[idx];
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.closePath();
+      ctx.fill();
+    });
 
     const edges = [
       [0, 1], [1, 2], [2, 3], [3, 0],
@@ -356,24 +366,24 @@ export class Space3DSandbox extends BaseSandbox {
       [0, 4], [1, 5], [2, 6], [3, 7]
     ];
     edges.forEach(([i, j]) => {
-      this.drawLine3D(ctx, verts[i], verts[j], colorStroke, 2);
+      this.drawLine3D(ctx, verts[i], verts[j], colorStroke, 1.5);
     });
 
     const origin = { x: 0, y: 0, z: 0 };
-    const right = this.rotateVecByQuat({ x: s * 1.9, y: 0, z: 0 }, quat);
-    const up = this.rotateVecByQuat({ x: 0, y: s * 1.9, z: 0 }, quat);
-    const fwd = this.rotateVecByQuat({ x: 0, y: 0, z: s * 2.2 }, quat);
+    const right = this.rotateVecByQuat({ x: s * 1.6, y: 0, z: 0 }, quat);
+    const up = this.rotateVecByQuat({ x: 0, y: s * 1.6, z: 0 }, quat);
+    const fwd = this.rotateVecByQuat({ x: 0, y: 0, z: s * 1.8 }, quat);
 
-    this.drawLine3D(ctx, origin, right, "#ff6b6b", 3);
-    this.drawLine3D(ctx, origin, up, "#51cf66", 3);
-    this.drawLine3D(ctx, origin, fwd, "#4dabf7", 3.5);
+    this.drawLine3D(ctx, origin, right, "#ff6b6b", 2.2);
+    this.drawLine3D(ctx, origin, up, "#51cf66", 2.5);
+    this.drawLine3D(ctx, origin, fwd, "#4dabf7", 2.8);
     ctx.restore();
   }
 
   drawGimbalRing(ctx, radius, plane, color) {
     ctx.save();
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     const steps = 48;
     for (let i = 0; i <= steps; i++) {
@@ -405,32 +415,32 @@ export class Space3DSandbox extends BaseSandbox {
       const ground = { x: p.x, y: 0, z: p.z };
 
       const gScr = this.project3D(ground);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
       ctx.beginPath();
-      ctx.ellipse(gScr.x, gScr.y, 10, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(gScr.x, gScr.y, 8, 4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, ground, "#fcc419", 2.5, [4, 4]);
-      this.drawLine3D(ctx, ground, p, "#51cf66", 3, [4, 4]);
-      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, p, "#4cc2ff", 3.5);
+      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, ground, "#fcc419", 2, [3, 3]);
+      this.drawLine3D(ctx, ground, p, "#51cf66", 2.5, [3, 3]);
+      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, p, "#4cc2ff", 3);
 
       const sp = this.project3D(p);
       ctx.beginPath();
-      ctx.arc(sp.x, sp.y, 8, 0, Math.PI * 2);
+      ctx.arc(sp.x, sp.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = "#4cc2ff";
       ctx.fill();
 
       ctx.fillStyle = colors.text;
-      ctx.font = "600 13px Segoe UI, sans-serif";
+      ctx.font = "600 12px Segoe UI, sans-serif";
       const hState = p.y >= 0 ? "AU-DESSUS DU SOL" : "SOUS LE SOL";
-      ctx.fillText(`Point P (Hauteur Y = ${p.y.toFixed(2)} → ${hState})`, sp.x + 12, sp.y - 8);
+      ctx.fillText(`Point P (Y = ${p.y.toFixed(2)} → ${hState})`, sp.x + 10, sp.y - 6);
       return;
     }
 
-    if (this.mode === "qeuler") {
-      this.drawGimbalRing(ctx, 1.55, "yz", "#ff6b6b");
-      this.drawGimbalRing(ctx, 1.7, "xz", "#51cf66");
-      this.drawGimbalRing(ctx, 1.85, "xy", "#4dabf7");
+    if (this.mode === "qeuler" || this.mode === "euler") {
+      this.drawGimbalRing(ctx, 1.5, "yz", "rgba(255, 107, 107, 0.5)");
+      this.drawGimbalRing(ctx, 1.65, "xz", "rgba(81, 207, 102, 0.5)");
+      this.drawGimbalRing(ctx, 1.8, "xy", "rgba(77, 171, 247, 0.5)");
     }
 
     if (this.mode === "qangleaxis") {
@@ -438,34 +448,34 @@ export class Space3DSandbox extends BaseSandbox {
       const ax = (this.axisX / len) * 2.1;
       const ay = (this.axisY / len) * 2.1;
       const az = (this.axisZ / len) * 2.1;
-      this.drawLine3D(ctx, { x: -ax, y: -ay, z: -az }, { x: ax, y: ay, z: az }, "#fcc419", 3, [6, 4]);
+      this.drawLine3D(ctx, { x: -ax, y: -ay, z: -az }, { x: ax, y: ay, z: az }, "#fcc419", 2.5, [5, 4]);
       const tip = this.project3D({ x: ax, y: ay, z: az });
       ctx.fillStyle = "#fcc419";
-      ctx.font = "700 12px Segoe UI, sans-serif";
-      ctx.fillText(`Axe de broche (${this.angleDeg}°)`, tip.x + 8, tip.y);
+      ctx.font = "700 11px Segoe UI, sans-serif";
+      ctx.fillText(`Axe (${this.angleDeg}°)`, tip.x + 8, tip.y);
     }
 
     if (this.mode === "qlookrotation") {
       const groundT = { x: this.targetPos.x, y: 0, z: this.targetPos.z };
-      this.drawLine3D(ctx, groundT, this.targetPos, "rgba(252, 196, 25, 0.5)", 2, [3, 3]);
-      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, this.targetPos, "#fcc419", 2.5, [5, 5]);
+      this.drawLine3D(ctx, groundT, this.targetPos, "rgba(252, 196, 25, 0.4)", 1.5, [2, 2]);
+      this.drawLine3D(ctx, { x: 0, y: 0, z: 0 }, this.targetPos, "#fcc419", 2, [4, 4]);
       const tScr = this.project3D(this.targetPos);
       ctx.beginPath();
-      ctx.arc(tScr.x, tScr.y, 8, 0, Math.PI * 2);
+      ctx.arc(tScr.x, tScr.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = "#fcc419";
       ctx.fill();
-      ctx.fillText(`Cible (Hauteur Y=${this.targetPos.y.toFixed(1)})`, tScr.x + 12, tScr.y + 4);
+      ctx.fillText(`Cible (Y=${this.targetPos.y.toFixed(1)})`, tScr.x + 10, tScr.y + 4);
     }
 
     if (this.mode === "qslerp" && this.qStart && this.qEnd) {
-      this.drawOrientedCube(ctx, this.qStart, 0.72, "#8a8886", 0.3);
-      this.drawOrientedCube(ctx, this.qEnd, 0.72, "#fcc419", 0.3);
+      this.drawOrientedCube(ctx, this.qStart, 0.65, "#8a8886", 0.25);
+      this.drawOrientedCube(ctx, this.qEnd, 0.65, "#fcc419", 0.25);
     }
 
-    this.drawOrientedCube(ctx, this.currentQuat, 0.82, "#4cc2ff", 1.0);
+    this.drawOrientedCube(ctx, this.currentQuat, 0.75, "#4cc2ff", 1.0);
 
     ctx.fillStyle = colors.muted;
-    ctx.font = "12px Segoe UI, sans-serif";
-    ctx.fillText("Face Verte du Cube = HAUT (Toit) | Face Bleue = DEVANT (Visée) | Glissez pour tourner la caméra", 16, this.height - 14);
+    ctx.font = "11px Segoe UI, sans-serif";
+    ctx.fillText("Cube : Vert = Haut | Bleu = Devant | Glissez pour pivoter la caméra", 14, this.height - 12);
   }
 }

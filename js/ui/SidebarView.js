@@ -3,7 +3,7 @@ export class SidebarView {
     this.navContainer = navContainer;
     this.filterInput = filterInput;
     this.catalog = catalog;
-    this.activeId = "cos";
+    this.activeId = "direction";
 
     this.filterInput.addEventListener("input", () => {
       this.render(this.filterInput.value.trim().toLowerCase());
@@ -19,7 +19,10 @@ export class SidebarView {
     const groups = new Map();
 
     this.catalog.forEach((item) => {
-      if (query && !item.name.toLowerCase().includes(query) && !item.category.toLowerCase().includes(query)) {
+      const matchName = item.name?.toLowerCase().includes(query) || false;
+      const matchSub = item.subtitle?.toLowerCase().includes(query) || false;
+      
+      if (query && !matchName && !matchSub && !item.category.toLowerCase().includes(query)) {
         return;
       }
       if (!groups.has(item.category)) {
@@ -47,7 +50,10 @@ export class SidebarView {
         const a = document.createElement("a");
         a.href = `#${item.id}`;
         a.className = `ms-nav-link ${item.id === this.activeId ? "is-active" : ""}`;
-        a.textContent = `Mathf.${item.name}`;
+        
+        const iconHtml = `${item.icon || '📄'}`;
+        a.innerHTML = `${iconHtml} ${item.title || item.name}`;
+        
         li.appendChild(a);
         ul.appendChild(li);
       });

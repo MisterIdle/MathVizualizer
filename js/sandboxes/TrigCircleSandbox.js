@@ -4,50 +4,64 @@ import { MathEvaluator } from "../core/MathEvaluator.js";
 export class TrigCircleSandbox extends BaseSandbox {
   constructor(canvas, funcItem, onStateChange) {
     super(canvas, funcItem, onStateChange);
-    this.radiusStep = 0;
     this.draggingIndex = -1;
+    this.lerpT = 0.5;
+    this.spawnCount = 8;
 
-    const needsTwoPoints = funcItem.id === "deltaangle" || funcItem.id === "lerpangle";
-    this.points = needsTwoPoints
-      ? [
-          { angleRad: Math.PI / 6, radius: 1.0 },
-          { angleRad: (4 * Math.PI) / 3, radius: 1.0 }
-        ]
-      : [{ angleRad: Math.PI / 4, radius: 1.0 }];
+    const id = funcItem.id;
+    if (id === "deltaangle" || id === "lerpangle") {
+      this.points = [
+        { angleRad: 0.35, radius: 1.0 },
+        { angleRad: 5.4, radius: 1.0 }
+      ];
+    } else if (id === "acos") {
+      this.points = [{ angleRad: Math.acos(0.45), radius: 1.0 }];
+    } else if (id === "asin") {
+      this.points = [{ angleRad: Math.asin(0.55), radius: 1.0 }];
+    } else {
+      this.points = [{ angleRad: Math.PI / 4, radius: 1.0 }];
+    }
 
     this.bindEvents();
     this.updateStateAndRender();
   }
 
   getControlsConfig() {
-    if (this.funcItem.id === "deltaangle" || this.funcItem.id === "lerpangle") {
-      return [];
-    }
-    return [
-      {
-        type: "range",
-        key: "radiusStep",
-        label: "Aimantation du Rayon (0 = Fluide)",
-        min: 0,
-        max: 0.5,
-        step: 0.25,
-        value: this.radiusStep,
-        onChange: (val) => {
-          this.radiusStep = val;
-          this.snapAllPoints();
-          this.updateStateAndRender();
+    if (this.funcItem.id === "lerpangle") {
+      return [
+        {
+          type: "range",
+          key: "lerpT",
+          label: "Curseur d'interpolation t (0 → 1)",
+          min: 0,
+          max: 1,
+          step: 0.02,
+          value: this.lerpT,
+          onChange: (val) => {
+            this.lerpT = val;
+            this.updateStateAndRender();
+          }
         }
-      }
-    ];
-  }
-
-  snapAllPoints() {
-    this.points.forEach((p) => {
-      if (this.radiusStep > 0) {
-        p.radius = Math.max(this.radiusStep, MathEvaluator.snap(p.radius, this.radiusStep));
-      }
-      p.radius = MathEvaluator.clamp(p.radius, 0.25, 1.25);
-    });
+      ];
+    }
+    if (this.funcItem.id === "sincos") {
+      return [
+        {
+          type: "range",
+          key: "spawnCount",
+          label: "Objets spawnés en cercle",
+          min: 3,
+          max: 16,
+          step: 1,
+          value: this.spawnCount,
+          onChange: (val) => {
+            this.spawnCount = val;
+            this.updateStateAndRender();
+          }
+        }
+      ];
+    }
+    return [];
   }
 
   bindEvents() {
@@ -55,7 +69,7 @@ export class TrigCircleSandbox extends BaseSandbox {
       const pos = this.getMousePos(e);
       const { cx, cy, baseR } = this.getGeometry();
       let bestIdx = 0;
-      let bestDist = 999;
+      let bestDist = 9999;
 
       this.points.forEach((p, idx) => {
         const px = cx + Math.cos(p.angleRad) * p.radius * baseR;
@@ -77,16 +91,29 @@ export class TrigCircleSandbox extends BaseSandbox {
       const { cx, cy, baseR } = this.getGeometry();
       const dx = (pos.x - cx) / baseR;
       const dy = (cy - pos.y) / baseR;
+      const id = this.funcItem.id;
+
+      if (id === "acos") {
+        const clampedX = MathEvaluator.clamp(dx, -1, 1);
+        this.points[0] = { angleRad: Math.acos(clampedX), radius: 1.0 };
+        this.updateStateAndRender();
+        return;
+      }
+
+      if (id === "asin") {
+        const clampedY = MathEvaluator.clamp(dy, -1, 1);
+        let a = Math.asin(clampedY);
+        if (a < 0) a += Math.PI * 2;
+        this.points[0] = { angleRad: a, radius: 1.0 };
+        this.updateStateAndRender();
+        return;
+      }
 
       let angleRad = Math.atan2(dy, dx);
       if (angleRad < 0) angleRad += Math.PI * 2;
 
-      const lockUnitCircle = this.funcItem.id === "deltaangle" || this.funcItem.id === "lerpangle" || this.funcItem.id === "acos" || this.funcItem.id === "asin";
-      let radius = lockUnitCircle ? 1.0 : MathEvaluator.clamp(Math.hypot(dx, dy), 0.25, 1.25);
-
-      if (!lockUnitCircle && this.radiusStep > 0) {
-        radius = Math.max(this.radiusStep, MathEvaluator.snap(radius, this.radiusStep));
-      }
+      const allowFreeRadius = id === "atan" || id === "atan2" || id === "sincos";
+      const radius = allowFreeRadius ? MathEvaluator.clamp(Math.hypot(dx, dy), 0.3, 1.3) : 1.0;
 
       this.points[this.draggingIndex] = { angleRad, radius };
       this.updateStateAndRender();
@@ -104,18 +131,22 @@ export class TrigCircleSandbox extends BaseSandbox {
   getGeometry() {
     const id = this.funcItem.id;
     const hasWave = id === "cos" || id === "sin";
-    const cx = hasWave ? this.width * 0.33 : this.width * 0.5;
+    const cx = hasWave || id === "tan" ? this.width * 0.32 : this.width * 0.5;
     const cy = this.height * 0.5;
-    const baseR = Math.min(this.width, this.height) * 0.32;
+    const baseR = Math.min(this.width, this.height) * 0.31;
     return { cx, cy, baseR, hasWave };
   }
 
   updateStateAndRender() {
     if (!this.points) return;
+    const id = this.funcItem.id;
     const computed = this.points.map((p, idx) => {
-      const x = Math.cos(p.angleRad) * p.radius;
-      const y = Math.sin(p.angleRad) * p.radius;
-      const angleDeg = (p.angleRad * 180) / Math.PI;
+      let x = Math.cos(p.angleRad) * p.radius;
+      let y = Math.sin(p.angleRad) * p.radius;
+      let angleDeg = (p.angleRad * 180) / Math.PI;
+      if (id === "asin" && angleDeg > 180) {
+        angleDeg -= 360;
+      }
       return {
         index: idx + 1,
         color: this.palette[idx % this.palette.length],
@@ -130,39 +161,44 @@ export class TrigCircleSandbox extends BaseSandbox {
 
     computed.forEach((pt, idx) => {
       const other = computed[(idx + 1) % computed.length];
-      pt.out = MathEvaluator.evaluateTrig(this.funcItem.id, pt, other, 0.5);
+      pt.out = MathEvaluator.evaluateTrig(id, pt, other, this.lerpT);
     });
 
     this.computedPoints = computed;
     this.render();
     this.emitState({
       points: computed,
-      radiusStep: this.radiusStep
+      lerpT: this.lerpT
     });
   }
 
   render() {
-    if (!this.ctx || !this.points) return;
+    if (!this.ctx || !this.computedPoints) return;
     const ctx = this.ctx;
     const id = this.funcItem.id;
     const colors = this.getThemeColors();
-    const { cx, cy, baseR, hasWave } = this.getGeometry();
+    const { cx, cy, baseR } = this.getGeometry();
 
     ctx.clearRect(0, 0, this.width, this.height);
 
-    ctx.beginPath();
-    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-    ctx.strokeStyle = colors.axis;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
+    for (let i = -8; i <= 8; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx + i * (baseR * 0.5), 0);
+      ctx.lineTo(cx + i * (baseR * 0.5), this.height);
+      ctx.moveTo(0, cy + i * (baseR * 0.5));
+      ctx.lineTo(this.width, cy + i * (baseR * 0.5));
+      ctx.stroke();
+    }
 
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(0, cy);
     ctx.lineTo(this.width, cy);
     ctx.moveTo(cx, 0);
     ctx.lineTo(cx, this.height);
-    ctx.strokeStyle = colors.axis;
-    ctx.lineWidth = 1.2;
     ctx.stroke();
 
     if (id === "atan" || id === "atan2") {
@@ -170,139 +206,387 @@ export class TrigCircleSandbox extends BaseSandbox {
       return;
     }
 
-    if (hasWave) {
-      this.drawSideWave(ctx, id, cx, cy, baseR, colors);
+    if (id === "tan") {
+      this.drawTanDemo(ctx, cx, cy, baseR, colors);
+      return;
     }
 
-    if ((id === "deltaangle" || id === "lerpangle") && this.computedPoints.length >= 2) {
+    if (id === "acos") {
+      this.drawAcosDemo(ctx, cx, cy, baseR, colors);
+      return;
+    }
+
+    if (id === "asin") {
+      this.drawAsinDemo(ctx, cx, cy, baseR, colors);
+      return;
+    }
+
+    if (id === "sincos") {
+      this.drawSinCosDemo(ctx, cx, cy, baseR, colors);
+      return;
+    }
+
+    if (id === "deltaangle" || id === "lerpangle") {
       this.drawAngleComparison(ctx, id, cx, cy, baseR, colors);
+      return;
     }
 
-    (this.computedPoints || []).forEach((p) => {
-      const px = cx + p.x * baseR;
-      const py = cy - p.y * baseR;
+    this.drawCosOrSinDemo(ctx, id, cx, cy, baseR, colors);
+  }
 
-      if (id === "cos" || id === "acos") {
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = colors.colorX;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(px, cy);
-        ctx.stroke();
-        ctx.restore();
+  drawCosOrSinDemo(ctx, id, cx, cy, baseR, colors) {
+    const p = this.computedPoints[0];
+    const px = cx + p.x * baseR;
+    const py = cy - p.y * baseR;
 
-        ctx.strokeStyle = colors.colorX;
-        ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(px, cy);
-        ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-        ctx.fillStyle = colors.colorX;
-        ctx.font = "700 13px Consolas, monospace";
-        const msg = id === "acos"
-          ? `Entrée X = ${p.x.toFixed(2)} ➔ Angle Acos = ${((Math.acos(MathEvaluator.clamp(p.x, -1, 1)) * 180) / Math.PI).toFixed(1)}°`
-          : `Largeur X (Cos) = ${p.x.toFixed(2)}`;
-        ctx.fillText(msg, cx - 70, cy + 26);
-      } else if (id === "sin" || id === "asin") {
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = colors.colorY;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(cx, py);
-        ctx.stroke();
-        ctx.restore();
+    this.drawSideWave(ctx, id, cx, cy, baseR, colors);
 
-        ctx.strokeStyle = colors.colorY;
-        ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx, py);
-        ctx.stroke();
+    const activeColor = id === "cos" ? colors.colorX : colors.colorY;
 
-        ctx.fillStyle = colors.colorY;
-        ctx.font = "700 13px Consolas, monospace";
-        const msg = id === "asin"
-          ? `Entrée Y = ${p.y.toFixed(2)} ➔ Angle Asin = ${((Math.asin(MathEvaluator.clamp(p.y, -1, 1)) * 180) / Math.PI).toFixed(1)}°`
-          : `Hauteur Y (Sin) = ${p.y.toFixed(2)}`;
-        ctx.fillText(msg, cx + 12, (cy + py) / 2);
-      } else if (id === "tan") {
-        const wallX = cx + baseR;
-        ctx.strokeStyle = colors.grid;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(wallX, 0);
-        ctx.lineTo(wallX, this.height);
-        ctx.stroke();
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = activeColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    if (id === "cos") ctx.lineTo(px, cy);
+    else ctx.lineTo(cx, py);
+    ctx.stroke();
+    ctx.restore();
 
-        const tanVal = Math.tan(p.angleRad);
-        const tanY = cy - tanVal * baseR;
+    ctx.strokeStyle = activeColor;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    if (id === "cos") ctx.lineTo(px, cy);
+    else ctx.lineTo(cx, py);
+    ctx.stroke();
 
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = p.color;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(wallX, tanY);
-        ctx.stroke();
-        ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = "#4cc2ff";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
 
-        ctx.strokeStyle = "#fcc419";
-        ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.moveTo(wallX, cy);
-        ctx.lineTo(wallX, tanY);
-        ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(px, py, 9, 0, Math.PI * 2);
+    ctx.fillStyle = "#4cc2ff";
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-        ctx.fillStyle = "#fcc419";
-        ctx.font = "700 13px Consolas, monospace";
-        ctx.fillText(`Pente Tan = ${tanVal.toFixed(2)}`, wallX + 12, MathEvaluator.clamp(tanY, 24, this.height - 24));
-      } else if (id === "sincos") {
-        ctx.fillStyle = "rgba(76, 194, 255, 0.14)";
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(px, cy);
-        ctx.lineTo(px, py);
-        ctx.closePath();
-        ctx.fill();
+    ctx.fillStyle = activeColor;
+    ctx.font = "700 13px Consolas, monospace";
+    if (id === "cos") {
+      ctx.fillText(`Cos(${p.angleDeg.toFixed(0)}°) = Largeur X = ${p.x.toFixed(2)}`, cx - baseR * 0.6, cy + 26);
+    } else {
+      ctx.fillText(`Sin(${p.angleDeg.toFixed(0)}°) = Hauteur Y = ${p.y.toFixed(2)}`, cx + 14, (cy + py) / 2);
+    }
+  }
 
-        ctx.strokeStyle = colors.colorX;
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(px, cy);
-        ctx.stroke();
+  drawTanDemo(ctx, cx, cy, baseR, colors) {
+    const p = this.computedPoints[0];
+    const px = cx + p.x * baseR;
+    const py = cy - p.y * baseR;
+    const wallX = cx + baseR;
 
-        ctx.strokeStyle = colors.colorY;
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(px, cy);
-        ctx.lineTo(px, py);
-        ctx.stroke();
-      }
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
+    ctx.fillStyle = "rgba(204, 93, 232, 0.08)";
+    ctx.fillRect(wallX, 0, 14, this.height);
+    ctx.strokeStyle = "#cc5de8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(wallX, 0);
+    ctx.lineTo(wallX, this.height);
+    ctx.stroke();
+
+    const cosVal = Math.cos(p.angleRad);
+    const tanVal = Math.tan(p.angleRad);
+    const hitY = cy - tanVal * baseR;
+
+    if (Math.abs(cosVal) > 0.04 && cosVal > 0) {
+      ctx.fillStyle = "rgba(252, 196, 25, 0.12)";
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.lineTo(px, py);
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(px, py, 9, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
+      ctx.lineTo(wallX, cy);
+      ctx.lineTo(wallX, hitY);
+      ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = "#000";
-      ctx.lineWidth = 2;
+
+      ctx.save();
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "#fcc419";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(wallX, hitY);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.strokeStyle = "#cc5de8";
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(wallX, cy);
+      ctx.lineTo(wallX, hitY);
       ctx.stroke();
 
-      const ptName = this.computedPoints.length > 1 ? (p.index === 1 ? "Départ A" : "Cible B") : "Curseur";
-      ctx.fillStyle = colors.text;
-      ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText(`${ptName} (${p.angleDeg.toFixed(0)}°)`, px + 12, py - 10);
-    });
+      const clampedLabelY = MathEvaluator.clamp(hitY, 28, this.height - 28);
+      ctx.beginPath();
+      ctx.arc(wallX, clampedLabelY, 7, 0, Math.PI * 2);
+      ctx.fillStyle = "#fcc419";
+      ctx.fill();
+
+      ctx.fillStyle = "#cc5de8";
+      ctx.font = "700 14px Consolas, monospace";
+      ctx.fillText(`Impact Mur : Tan(${p.angleDeg.toFixed(0)}°) = ${tanVal.toFixed(2)}`, wallX + 22, clampedLabelY + 4);
+    } else {
+      ctx.fillStyle = "#ff6b6b";
+      ctx.font = "700 14px Segoe UI, sans-serif";
+      ctx.fillText("Angle orienté à gauche : visez vers le mur de droite (-85° à +85°)", wallX + 20, cy - 10);
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = "#4cc2ff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(px, py, 9, 0, Math.PI * 2);
+    ctx.fillStyle = "#4cc2ff";
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = colors.text;
+    ctx.font = "700 13px Segoe UI, sans-serif";
+    ctx.fillText(`Angle = ${p.angleDeg.toFixed(0)}°`, px + 12, py - 10);
+  }
+
+  drawAcosDemo(ctx, cx, cy, baseR, colors) {
+    const p = this.computedPoints[0];
+    const px = cx + p.x * baseR;
+    const py = cy - p.y * baseR;
+
+    ctx.fillStyle = "rgba(76, 194, 255, 0.08)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, Math.PI, 0, false);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, Math.PI, 0, false);
+    ctx.strokeStyle = "#4cc2ff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx - baseR, cy);
+    ctx.lineTo(cx + baseR, cy);
+    ctx.stroke();
+
+    ctx.strokeStyle = colors.colorX;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, cy);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = "#fcc419";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(px, cy);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = "rgba(252, 196, 25, 0.22)";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, baseR * 0.42, 0, -p.angleRad, true);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = "#fcc419";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(px, cy, 11, 0, Math.PI * 2);
+    ctx.fillStyle = colors.colorX;
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "#fcc419";
+    ctx.fill();
+
+    ctx.fillStyle = colors.colorX;
+    ctx.font = "700 13px Segoe UI, sans-serif";
+    ctx.fillText(`Glissez X ici (${p.x.toFixed(2)})`, px - 48, cy + 28);
+
+    ctx.fillStyle = "#fcc419";
+    ctx.font = "700 15px Consolas, monospace";
+    ctx.fillText(`Angle trouvé = Acos(${p.x.toFixed(2)}) = ${p.angleDeg.toFixed(1)}°`, cx - 140, cy - baseR - 18);
+  }
+
+  drawAsinDemo(ctx, cx, cy, baseR, colors) {
+    const p = this.computedPoints[0];
+    const px = cx + p.x * baseR;
+    const py = cy - p.y * baseR;
+
+    ctx.fillStyle = "rgba(81, 207, 102, 0.08)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, -Math.PI / 2, Math.PI / 2, false);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, -Math.PI / 2, Math.PI / 2, false);
+    ctx.strokeStyle = "#51cf66";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - baseR);
+    ctx.lineTo(cx, cy + baseR);
+    ctx.stroke();
+
+    ctx.strokeStyle = colors.colorY;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx, py);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = "#fcc419";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, py);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+    ctx.restore();
+
+    const signedRad = Math.asin(MathEvaluator.clamp(p.y, -1, 1));
+    ctx.fillStyle = "rgba(252, 196, 25, 0.22)";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, baseR * 0.42, 0, -signedRad, signedRad > 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = "#fcc419";
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, py, 11, 0, Math.PI * 2);
+    ctx.fillStyle = colors.colorY;
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "#fcc419";
+    ctx.fill();
+
+    ctx.fillStyle = colors.colorY;
+    ctx.font = "700 13px Segoe UI, sans-serif";
+    ctx.fillText(`Glissez Hauteur Y (${p.y.toFixed(2)})`, cx - 155, py + 5);
+
+    ctx.fillStyle = "#fcc419";
+    ctx.font = "700 15px Consolas, monospace";
+    ctx.fillText(`Pitch = Asin(${p.y.toFixed(2)}) = ${((signedRad * 180) / Math.PI).toFixed(1)}°`, cx - 120, cy - baseR - 18);
+  }
+
+  drawSinCosDemo(ctx, cx, cy, baseR, colors) {
+    const p = this.computedPoints[0];
+    const rPx = p.radius * baseR;
+    const px = cx + p.x * baseR;
+    const py = cy - p.y * baseR;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(76, 194, 255, 0.35)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    for (let i = 0; i < this.spawnCount; i++) {
+      const a = p.angleRad + (i * Math.PI * 2) / this.spawnCount;
+      const sx = cx + Math.cos(a) * rPx;
+      const sy = cy - Math.sin(a) * rPx;
+      ctx.beginPath();
+      ctx.arc(sx, sy, i === 0 ? 10 : 6, 0, Math.PI * 2);
+      ctx.fillStyle = i === 0 ? "#fcc419" : "#cc5de8";
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "rgba(76, 194, 255, 0.16)";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, cy);
+    ctx.lineTo(px, py);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = colors.colorX;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, cy);
+    ctx.stroke();
+
+    ctx.strokeStyle = colors.colorY;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(px, cy);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = "#fcc419";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = colors.text;
+    ctx.font = "700 13px Consolas, monospace";
+    ctx.fillText(`X = R·Cos = ${p.x.toFixed(2)} | Y = R·Sin = ${p.y.toFixed(2)}`, 18, this.height - 16);
   }
 
   drawTurretDemo(ctx, id, cx, cy, baseR, colors) {
@@ -311,7 +595,7 @@ export class TrigCircleSandbox extends BaseSandbox {
     const targetY = cy - p.y * baseR;
 
     if (id === "atan") {
-      ctx.fillStyle = "rgba(255, 107, 107, 0.12)";
+      ctx.fillStyle = "rgba(255, 107, 107, 0.14)";
       ctx.beginPath();
       ctx.arc(cx, cy, baseR, Math.PI / 2, (3 * Math.PI) / 2, false);
       ctx.closePath();
@@ -319,7 +603,7 @@ export class TrigCircleSandbox extends BaseSandbox {
 
       ctx.fillStyle = "#ff6b6b";
       ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText("ZONE MORTE ATAN (x < 0)", cx - baseR + 15, cy - baseR - 12);
+      ctx.fillText("ZONE INVERSÉE ATAN (X < 0)", cx - baseR + 10, cy - baseR - 12);
     } else {
       ctx.fillStyle = "rgba(81, 207, 102, 0.08)";
       ctx.beginPath();
@@ -330,8 +614,8 @@ export class TrigCircleSandbox extends BaseSandbox {
     const turretAngle = id === "atan" ? Math.atan(p.y / (p.x || 0.0001)) : Math.atan2(p.y, p.x);
     const isWrongDirection = id === "atan" && p.x < 0;
 
-    const laserEndX = cx + Math.cos(turretAngle) * baseR * 1.3;
-    const laserEndY = cy - Math.sin(turretAngle) * baseR * 1.3;
+    const laserEndX = cx + Math.cos(turretAngle) * baseR * 1.25;
+    const laserEndY = cy - Math.sin(turretAngle) * baseR * 1.25;
 
     ctx.save();
     ctx.setLineDash([6, 4]);
@@ -342,10 +626,6 @@ export class TrigCircleSandbox extends BaseSandbox {
     ctx.lineTo(laserEndX, laserEndY);
     ctx.stroke();
     ctx.restore();
-
-    ctx.fillStyle = colors.text;
-    ctx.font = "700 12px Consolas, monospace";
-    ctx.fillText(isWrongDirection ? "❌ TIR DU CANON (À L'ENVERS !)" : "🎯 TIR DU CANON (VERROUILLÉ)", laserEndX - 60, laserEndY - 10);
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -376,8 +656,8 @@ export class TrigCircleSandbox extends BaseSandbox {
     ctx.fillStyle = isWrongDirection ? "#ff6b6b" : "#51cf66";
     ctx.font = "700 14px Segoe UI, sans-serif";
     const statusText = isWrongDirection
-      ? `⚠️ BUG DE ATAN : (${p.y.toFixed(1)}) / (${p.x.toFixed(1)}) = ${(p.y / p.x).toFixed(2)} -> Atan croit que l'ennemi est à DROITE et tire à 180° à l'opposé !`
-      : `✓ ${id.toUpperCase()} : Angle du canon = ${((turretAngle * 180) / Math.PI).toFixed(1)}° (Essayez de glisser l'ennemi à gauche à X < 0)`;
+      ? `❌ BUG ATAN : y/x = ${(p.y / p.x).toFixed(2)} -> Le canon tire à 180° à l'opposé !`
+      : `🎯 ${id.toUpperCase()} : Canon verrouillé à ${((turretAngle * 180) / Math.PI).toFixed(1)}°`;
     ctx.fillText(statusText, 18, this.height - 16);
   }
 
@@ -404,12 +684,12 @@ export class TrigCircleSandbox extends BaseSandbox {
 
     const p = this.computedPoints[0];
     const wx = waveLeft + (p.angleRad / (Math.PI * 2)) * waveWidth;
-    const val = id === "cos" ? Math.cos(p.angleRad) * p.radius : Math.sin(p.angleRad) * p.radius;
+    const val = id === "cos" ? Math.cos(p.angleRad) : Math.sin(p.angleRad);
     const wy = cy - val * baseR;
 
     ctx.beginPath();
     ctx.arc(wx, wy, 7, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
+    ctx.fillStyle = "#fcc419";
     ctx.fill();
   }
 
@@ -420,31 +700,62 @@ export class TrigCircleSandbox extends BaseSandbox {
     const deltaRad = (deltaDeg * Math.PI) / 180;
     const arcR = baseR * 0.55;
 
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
     ctx.save();
     ctx.strokeStyle = deltaDeg >= 0 ? "#51cf66" : "#ff922b";
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 7;
     ctx.beginPath();
     ctx.arc(cx, cy, arcR, -p1.angleRad, -(p1.angleRad + deltaRad), deltaDeg > 0);
     ctx.stroke();
     ctx.restore();
 
     if (id === "lerpangle") {
-      [0.25, 0.5, 0.75].forEach((step) => {
-        const midRad = p1.angleRad + deltaRad * step;
-        const mx = cx + Math.cos(midRad) * baseR;
-        const my = cy - Math.sin(midRad) * baseR;
-        ctx.beginPath();
-        ctx.arc(mx, my, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#fcc419";
-        ctx.fill();
-        ctx.fillStyle = colors.text;
-        ctx.font = "700 11px Consolas, monospace";
-        ctx.fillText(`t=${step}`, mx + 8, my + 4);
-      });
+      const curRad = p1.angleRad + deltaRad * this.lerpT;
+      const lx = cx + Math.cos(curRad) * baseR;
+      const ly = cy - Math.sin(curRad) * baseR;
+
+      ctx.strokeStyle = "#fcc419";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(lx, ly);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(lx, ly, 9, 0, Math.PI * 2);
+      ctx.fillStyle = "#fcc419";
+      ctx.fill();
+      ctx.fillStyle = "#fcc419";
+      ctx.font = "700 13px Consolas, monospace";
+      ctx.fillText(`t=${this.lerpT.toFixed(2)}`, lx + 12, ly + 4);
     }
+
+    [p1, p2].forEach((p, idx) => {
+      const px = cx + p.x * baseR;
+      const py = cy - p.y * baseR;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(px, py, 9, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.fillStyle = colors.text;
+      ctx.font = "700 13px Segoe UI, sans-serif";
+      ctx.fillText(`${idx === 0 ? "Départ A" : "Cible B"} (${p.angleDeg.toFixed(0)}°)`, px + 12, py - 10);
+    });
 
     ctx.fillStyle = deltaDeg >= 0 ? "#51cf66" : "#ff922b";
     ctx.font = "700 14px Segoe UI, sans-serif";
-    ctx.fillText(`Chemin le plus court de A vers B = ${deltaDeg.toFixed(1)}°`, 18, this.height - 16);
+    ctx.fillText(`Plus court chemin A → B : ${deltaDeg > 0 ? "+" : ""}${deltaDeg.toFixed(1)}°`, 18, this.height - 16);
   }
 }

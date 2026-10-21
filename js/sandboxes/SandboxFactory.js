@@ -3,6 +3,7 @@ import { VectorSandbox } from "./VectorSandbox.js";
 import { GraphSandbox } from "./GraphSandbox.js";
 import { SpecialSandbox } from "./SpecialSandbox.js";
 import { Space3DSandbox } from "./Space3DSandbox.js";
+import { GeometrySandbox } from "./GeometrySandbox.js";
 
 export class SandboxFactory {
   static create(canvas, funcItem, onStateChange) {
@@ -11,6 +12,8 @@ export class SandboxFactory {
         return new TrigCircleSandbox(canvas, funcItem, onStateChange);
       case "space3d":
         return new Space3DSandbox(canvas, funcItem, onStateChange);
+      case "geometry":
+        return new GeometrySandbox(canvas, funcItem, onStateChange);
       case "dot":
       case "cross":
       case "project":

@@ -4,15 +4,27 @@ export class VectorSandbox extends BaseSandbox {
   constructor(canvas, funcItem, onStateChange) {
     super(canvas, funcItem, onStateChange);
     this.mode = funcItem.sandbox;
+    this.id = funcItem.id;
     this.vecA = { x: 1.8, y: 1.4, z: 0.0 };
-    this.vecB = { x: 0.0, y: 2.2, z: 0.0 };
+    this.vecB = { x: -1.0, y: 2.2, z: 0.0 };
     this.vecC = { x: -1.8, y: -0.8, z: 0.0 };
     this.weightA = 1.0;
     this.weightB = 1.0;
     this.weightC = 1.0;
     this.gravity = 9.81;
-    this.normalizeVectors = true;
+    this.rangeLimit = 2.5;
+
+    this.normalizeVectors =
+      (this.mode === "dot" || this.mode === "cross") &&
+      this.id !== "direction" &&
+      this.id !== "magnitude" &&
+      this.id !== "reflect";
     this.draggingTarget = null;
+
+    if (this.id === "reflect") {
+      this.vecA = { x: 0.0, y: 2.0, z: 0.0 };
+      this.vecB = { x: -2.2, y: 1.8, z: 0.0 };
+    }
 
     this.bindEvents();
     this.updateStateAndRender();
@@ -31,7 +43,12 @@ export class VectorSandbox extends BaseSandbox {
         { type: "range", key: "g", label: "Gravité g (m/s²)", min: 1.6, max: 20, step: 0.2, value: this.gravity, onChange: (v) => { this.gravity = v; this.updateStateAndRender(); } }
       ];
     }
-    if (this.mode === "dot" || this.mode === "cross") {
+    if (this.id === "magnitude") {
+      return [
+        { type: "range", key: "range", label: "Portée du Radar", min: 1.0, max: 4.5, step: 0.1, value: this.rangeLimit, onChange: (v) => { this.rangeLimit = v; this.updateStateAndRender(); } }
+      ];
+    }
+    if ((this.mode === "dot" || this.mode === "cross") && this.id !== "direction" && this.id !== "magnitude" && this.id !== "reflect") {
       return [
         { type: "button", label: "Normaliser A & B (Longueur = 1) : On/Off", onClick: () => { this.normalizeVectors = !this.normalizeVectors; this.updateStateAndRender(); } }
       ];
@@ -56,7 +73,7 @@ export class VectorSandbox extends BaseSandbox {
       if (!this.draggingTarget) return;
       const pos = this.getMousePos(e);
       const { cx, cy, scale } = this.getGeometry();
-      const vx = Math.max(-3.6, Math.min(3.6, (pos.x - cx) / scale));
+      const vx = Math.max(-4.2, Math.min(4.2, (pos.x - cx) / scale));
       const vy = Math.max(-3.2, Math.min(3.2, (cy - pos.y) / scale));
 
       if (this.draggingTarget === "A") { this.vecA.x = vx; this.vecA.y = vy; }
@@ -76,7 +93,7 @@ export class VectorSandbox extends BaseSandbox {
     return {
       cx: this.mode === "ballistic" ? this.width * 0.14 : this.width / 2,
       cy: this.mode === "ballistic" ? this.height * 0.82 : this.height / 2,
-      scale: Math.min(this.width, this.height) * 0.14
+      scale: Math.min(this.width, this.height) * 0.13
     };
   }
 
@@ -91,16 +108,12 @@ export class VectorSandbox extends BaseSandbox {
 
   updateStateAndRender() {
     if (!this.vecA || !this.vecB) return;
-    const a = this.normalizeVectors && (this.mode === "dot" || this.mode === "cross") ? this.normalize(this.vecA) : { ...this.vecA };
-    const b = this.normalizeVectors && (this.mode === "dot" || this.mode === "cross") ? this.normalize(this.vecB) : { ...this.vecB };
+    const a = this.normalizeVectors ? this.normalize(this.vecA) : { ...this.vecA };
+    const b = this.normalizeVectors ? this.normalize(this.vecB) : { ...this.vecB };
 
     const dot = a.x * b.x + a.y * b.y + a.z * b.z;
     const det2D = a.x * b.y - a.y * b.x;
-    const cross = {
-      x: a.y * b.z - a.z * b.y,
-      y: a.z * b.x - a.x * b.z,
-      z: det2D
-    };
+    const cross = { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: det2D };
 
     this.currentA = a;
     this.currentB = b;
@@ -109,25 +122,21 @@ export class VectorSandbox extends BaseSandbox {
     this.currentCross = cross;
 
     this.render();
-    this.emitState({
-      vecA: a,
-      vecB: b,
-      vecC: this.vecC,
-      dot,
-      det: det2D,
-      cross
-    });
+    this.emitState({ vecA: a, vecB: b, vecC: this.vecC, dot, det: det2D, cross });
   }
 
-  drawArrow(ctx, x1, y1, x2, y2, color, label) {
+  drawArrow(ctx, x1, y1, x2, y2, color, label, isDashed = false) {
     const headLen = 11;
     const angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.save();
+    if (isDashed) ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.strokeStyle = color;
     ctx.lineWidth = 3.5;
     ctx.stroke();
+    ctx.restore();
 
     ctx.beginPath();
     ctx.moveTo(x2, y2);
@@ -138,8 +147,24 @@ export class VectorSandbox extends BaseSandbox {
     ctx.fill();
 
     if (label) {
+      ctx.fillStyle = color;
       ctx.font = "700 13px Segoe UI, sans-serif";
       ctx.fillText(label, x2 + 12, y2 - 6);
+    }
+  }
+
+  drawPointWithLabel(ctx, x, y, color, label) {
+    ctx.beginPath();
+    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    if (label) {
+      ctx.fillStyle = color;
+      ctx.font = "700 13px Segoe UI, sans-serif";
+      ctx.fillText(label, x + 14, y + 4);
     }
   }
 
@@ -153,7 +178,7 @@ export class VectorSandbox extends BaseSandbox {
 
     ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;
-    for (let i = -8; i <= 8; i++) {
+    for (let i = -10; i <= 10; i++) {
       ctx.beginPath();
       ctx.moveTo(cx + i * scale, 0);
       ctx.lineTo(cx + i * scale, this.height);
@@ -175,12 +200,87 @@ export class VectorSandbox extends BaseSandbox {
     const pB = this.project(this.currentB, cx, cy, scale);
     const pC = this.project(this.vecC, cx, cy, scale);
 
+    if (this.id === "direction") {
+      const dirX = this.currentB.x - this.currentA.x;
+      const dirY = this.currentB.y - this.currentA.y;
+
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, "#fcc419", `Direction (${dirX.toFixed(1)}, ${dirY.toFixed(1)})`);
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `Joueur Pos (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
+      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, `Cible Target (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`);
+
+      ctx.fillStyle = "#fcc419";
+      ctx.font = "700 14px Segoe UI, sans-serif";
+      ctx.fillText(`Target - Pos = (${dirX.toFixed(2)}, ${dirY.toFixed(2)}) — Glissez le Joueur ou la Cible !`, 18, this.height - 16);
+      return;
+    }
+
+    if (this.id === "magnitude") {
+      const dist = Math.hypot(this.currentB.x - this.currentA.x, this.currentB.y - this.currentA.y);
+      const isInside = dist <= this.rangeLimit;
+
+      ctx.beginPath();
+      ctx.arc(pA.x, pA.y, this.rangeLimit * scale, 0, Math.PI * 2);
+      ctx.fillStyle = isInside ? "rgba(255, 107, 107, 0.16)" : "rgba(81, 207, 102, 0.1)";
+      ctx.fill();
+      ctx.strokeStyle = isInside ? "#ff6b6b" : "#51cf66";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, isInside ? "#ff6b6b" : "#51cf66", `${dist.toFixed(2)}m`);
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Joueur (Centre Radar)");
+      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Ennemi");
+
+      ctx.fillStyle = isInside ? "#ff6b6b" : "#51cf66";
+      ctx.font = "700 14px Segoe UI, sans-serif";
+      ctx.fillText(
+        isInside
+          ? `🚨 ENNEMI À PORTÉE ! Distance = ${dist.toFixed(2)}m ≤ ${this.rangeLimit}m (sqrMagnitude = ${(dist * dist).toFixed(2)})`
+          : `✓ Hors de portée : Distance = ${dist.toFixed(2)}m > ${this.rangeLimit}m`,
+        18,
+        this.height - 16
+      );
+      return;
+    }
+
+    if (this.id === "reflect") {
+      const normA = this.normalize(this.currentA);
+      const tangentX = -normA.y;
+      const tangentY = normA.x;
+
+      ctx.strokeStyle = "#8a8886";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(cx - tangentX * scale * 3.5, cy + tangentY * scale * 3.5);
+      ctx.lineTo(cx + tangentX * scale * 3.5, cy - tangentY * scale * 3.5);
+      ctx.stroke();
+
+      const inVec = { x: -this.currentB.x, y: -this.currentB.y };
+      const dotProd = inVec.x * normA.x + inVec.y * normA.y;
+      const refVec = {
+        x: inVec.x - 2 * dotProd * normA.x,
+        y: inVec.y - 2 * dotProd * normA.y
+      };
+      const pRef = this.project(refVec, cx, cy, scale);
+
+      this.drawArrow(ctx, pB.x, pB.y, cx, cy, colors.colorZ, "");
+      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Source Laser B (Glissez)");
+      this.drawArrow(ctx, cx, cy, pA.x, pA.y, "#fcc419", "Normale Mur A (Glissez)");
+      this.drawArrow(ctx, cx, cy, pRef.x, pRef.y, "#cc5de8", "Laser Rebondi (Reflect)");
+
+      ctx.fillStyle = "#cc5de8";
+      ctx.font = "700 14px Segoe UI, sans-serif";
+      ctx.fillText(`Reflect = Rayon rebondit symétriquement par rapport à la Normale jaune`, 18, this.height - 16);
+      return;
+    }
+
     if (this.mode === "dot") {
       const guardAngle = Math.atan2(this.currentB.y, this.currentB.x);
       ctx.fillStyle = "rgba(81, 207, 102, 0.14)";
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, scale * 2.2, -(guardAngle + Math.PI / 4), -(guardAngle - Math.PI / 4), false);
+      ctx.arc(cx, cy, scale * 2.4, -(guardAngle + Math.PI / 4), -(guardAngle - Math.PI / 4), false);
       ctx.closePath();
       ctx.fill();
 
@@ -193,13 +293,13 @@ export class VectorSandbox extends BaseSandbox {
         verdict = `👀 Dot = ${this.currentDot.toFixed(2)} (> 0.7) : JOUEUR DANS LE CÔNE DE VISION (DÉTECTÉ !)`;
         vColor = "#ff6b6b";
       } else if (this.currentDot > 0.05) {
-        verdict = `⚠️ Dot = ${this.currentDot.toFixed(2)} (> 0) : JOUEUR DEVANT MAIS HORS CÔNE PÉRIPHÉRIQUE`;
+        verdict = `⚠️ Dot = ${this.currentDot.toFixed(2)} (> 0) : DEVANT MAIS HORS CÔNE PÉRIPHÉRIQUE`;
         vColor = "#fcc419";
       } else if (this.currentDot >= -0.05) {
-        verdict = `📐 Dot ≈ 0 : JOUEUR EXACTEMENT À 90° SUR LE FLANC DU GARDE`;
+        verdict = `📐 Dot ≈ 0 : EXACTEMENT À 90° SUR LE FLANC`;
         vColor = "#4cc2ff";
       } else {
-        verdict = `🥷 Dot = ${this.currentDot.toFixed(2)} (< 0) : JOUEUR DANS LE DOS DU GARDE (INVISIBLE / BACKSTAB)`;
+        verdict = `🥷 Dot = ${this.currentDot.toFixed(2)} (< 0) : DANS LE DOS DU GARDE (BACKSTAB)`;
         vColor = "#51cf66";
       }
 
@@ -227,17 +327,9 @@ export class VectorSandbox extends BaseSandbox {
       const cosGamma = Math.max(-1, Math.min(1, (aLen ** 2 + bLen ** 2 - cLen ** 2) / (2 * aLen * bLen || 1)));
       const gammaDeg = (Math.acos(cosGamma) * 180) / Math.PI;
 
-      [
-        { p: pA, name: "Épaule A", col: colors.colorX },
-        { p: pB, name: "Main B", col: colors.colorZ },
-        { p: pC, name: `Coude C (Angle = ${gammaDeg.toFixed(1)}°)`, col: "#fcc419" }
-      ].forEach((item) => {
-        ctx.beginPath();
-        ctx.arc(item.p.x, item.p.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = item.col;
-        ctx.fill();
-        ctx.fillText(item.name, item.p.x + 10, item.p.y - 8);
-      });
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Épaule A");
+      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Main B");
+      this.drawPointWithLabel(ctx, pC.x, pC.y, "#fcc419", `Coude C (Angle = ${gammaDeg.toFixed(1)}°)`);
       return;
     }
 
@@ -270,23 +362,10 @@ export class VectorSandbox extends BaseSandbox {
       }
       ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(pG.x, pG.y, 9, 0, Math.PI * 2);
-      ctx.fillStyle = "#51cf66";
-      ctx.fill();
-      ctx.fillText(`Centre de Masse G (${gx.toFixed(2)}, ${gy.toFixed(2)})`, pG.x + 12, pG.y + 4);
-
-      [
-        { p: pA, label: `A (α=${this.weightA})`, col: colors.colorX },
-        { p: pB, label: `B (β=${this.weightB})`, col: colors.colorZ },
-        { p: pC, label: `C (γ=${this.weightC})`, col: "#fcc419" }
-      ].forEach((pt) => {
-        ctx.beginPath();
-        ctx.arc(pt.p.x, pt.p.y, 7, 0, Math.PI * 2);
-        ctx.fillStyle = pt.col;
-        ctx.fill();
-        ctx.fillText(pt.label, pt.p.x + 10, pt.p.y - 8);
-      });
+      this.drawPointWithLabel(ctx, pG.x, pG.y, "#51cf66", `Centre de Masse G (${gx.toFixed(1)}, ${gy.toFixed(1)})`);
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `A (α=${this.weightA})`);
+      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, `B (β=${this.weightB})`);
+      this.drawPointWithLabel(ctx, pC.x, pC.y, "#fcc419", `C (γ=${this.weightC})`);
       return;
     }
 
@@ -305,7 +384,7 @@ export class VectorSandbox extends BaseSandbox {
         if (y < -0.5 && t > 0.2) break;
       }
       ctx.stroke();
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Vitesse Initiale V0 (Glissez la flèche)`);
+      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Vitesse Initiale V0 (Glissez)`);
       return;
     }
 
@@ -319,59 +398,45 @@ export class VectorSandbox extends BaseSandbox {
           this.drawArrow(ctx, s1.x, s1.y, s2.x, s2.y, "#4cc2ff", "");
         }
       }
-      ctx.beginPath();
-      ctx.arc(pA.x, pA.y, 9, 0, Math.PI * 2);
-      ctx.fillStyle = colors.colorX;
-      ctx.fill();
-      ctx.fillText(`Vortex / Sonde Nabla ∇ (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`, pA.x + 12, pA.y);
+      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `Vortex Nabla ∇ (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
       return;
     }
 
     if (this.mode === "project") {
       const bLenSq = this.currentB.x ** 2 + this.currentB.y ** 2 || 1;
       const projFactor = this.currentDot / bLenSq;
-      const projVec = {
-        x: this.currentB.x * projFactor,
-        y: this.currentB.y * projFactor,
-        z: 0
-      };
+      const projVec = { x: this.currentB.x * projFactor, y: this.currentB.y * projFactor, z: 0 };
       const pProj = this.project(projVec, cx, cy, scale);
       const distOrtho = Math.hypot(this.currentA.x - projVec.x, this.currentA.y - projVec.y);
 
-      ctx.save();
-      ctx.setLineDash([5, 5]);
-      ctx.strokeStyle = "#51cf66";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(pA.x, pA.y);
-      ctx.lineTo(pProj.x, pProj.y);
-      ctx.stroke();
-      ctx.restore();
-
-      this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#fcc419", `Projeté H (Distance au mur = ${distOrtho.toFixed(2)})`);
-    } else {
-      const sumAB = {
-        x: this.currentA.x + this.currentB.x,
-        y: this.currentA.y + this.currentB.y,
-        z: 0
-      };
-      const pSum = this.project(sumAB, cx, cy, scale);
-
-      ctx.fillStyle = this.currentDet >= 0 ? "rgba(81, 207, 102, 0.16)" : "rgba(255, 107, 107, 0.16)";
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(pA.x, pA.y);
-      ctx.lineTo(pSum.x, pSum.y);
-      ctx.lineTo(pB.x, pB.y);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = colors.text;
-      ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText(`Aire / Déterminant = ${this.currentDet.toFixed(2)}`, (cx + pSum.x) / 2 - 40, (cy + pSum.y) / 2);
+      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Vecteur A`);
+      this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `Mur / Rail B`);
+      this.drawArrow(ctx, pA.x, pA.y, pProj.x, pProj.y, "#51cf66", "", true);
+      this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#fcc419", `Projeté H (Dist=${distOrtho.toFixed(2)})`);
+      return;
     }
+
+    const sumAB = { x: this.currentA.x + this.currentB.x, y: this.currentA.y + this.currentB.y, z: 0 };
+    const pSum = this.project(sumAB, cx, cy, scale);
+
+    ctx.fillStyle = this.currentDet >= 0 ? "rgba(81, 207, 102, 0.16)" : "rgba(255, 107, 107, 0.16)";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(pA.x, pA.y);
+    ctx.lineTo(pSum.x, pSum.y);
+    ctx.lineTo(pB.x, pB.y);
+    ctx.closePath();
+    ctx.fill();
 
     this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `A (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
     this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `B (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`);
+
+    ctx.fillStyle = this.currentDet >= 0 ? "#51cf66" : "#ff6b6b";
+    ctx.font = "700 14px Segoe UI, sans-serif";
+    ctx.fillText(
+      `Déterminant = ${this.currentDet.toFixed(2)} (${this.currentDet >= 0 ? "B est à GAUCHE de A" : "B est à DROITE de A"})`,
+      18,
+      this.height - 16
+    );
   }
 }

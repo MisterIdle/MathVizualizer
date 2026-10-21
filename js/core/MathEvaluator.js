@@ -65,6 +65,10 @@ export class MathEvaluator {
     const b = params.b !== undefined ? params.b : 1;
 
     switch (funcId) {
+      case "euclide": // <-- AJOUT DU MODULO ICI
+        const modulo = Math.abs(a) < 0.001 ? 1 : a;
+        let r = x % modulo;
+        return r < 0 ? r + modulo : r;
       case "lerp":
         return a + (b - a) * this.clamp01(x);
       case "lerpunclamped":
@@ -96,8 +100,8 @@ export class MathEvaluator {
       }
       case "pingpong": {
         const len = Math.max(0.1, a);
-        const r = x - Math.floor(x / (len * 2)) * (len * 2);
-        return len - Math.abs(r - len);
+        const rem = x - Math.floor(x / (len * 2)) * (len * 2);
+        return len - Math.abs(rem - len);
       }
       case "abs":
         return Math.abs(x);

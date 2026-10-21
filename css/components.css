@@ -254,10 +254,12 @@
 
 .ms-code-pre {
   padding: 14px;
-  overflow-x: auto;
+  overflow-x: hidden;
   font-size: 13px;
   line-height: 1.55;
   color: var(--text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .ms-table {
@@ -285,4 +287,12 @@
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
+}
+
+.ms-article-subtitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: -6px;
+  margin-bottom: 16px;
 }

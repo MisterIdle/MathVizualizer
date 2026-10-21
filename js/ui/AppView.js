@@ -6,6 +6,16 @@ export class AppView {
     this.articleContainer = articleContainer;
     this.breadcrumbContainer = breadcrumbContainer;
     this.currentSandbox = null;
+
+    // Utilisation des VRAIS logos officiels via Devicon CDN
+    this.icons = {
+      unity: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg" style="width: 16px; height: 16px; filter: invert(1);" alt="Unity" />`,
+      godot: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/godot/godot-original.svg" style="width: 16px; height: 16px;" alt="Godot" />`,
+      dotnet: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/dotnetcore/dotnetcore-original.svg" style="width: 16px; height: 16px;" alt=".NET" />`,
+      cpp: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" style="width: 16px; height: 16px;" alt="C++" />`,
+      unreal: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unrealengine/unrealengine-original.svg" style="width: 16px; height: 16px; filter: invert(1);" alt="Unreal" />`,
+      python: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" style="width: 16px; height: 16px;" alt="Python" />`
+    };
   }
 
   render(funcItem) {
@@ -35,12 +45,13 @@ export class AppView {
 
     this.articleContainer.innerHTML = `
       <header class="ms-article-header" id="section-definition">
-        <h1 class="ms-article-title">${funcItem.name}</h1>
+        <h1 class="ms-article-title">${funcItem.icon || ''} ${funcItem.name}</h1>
+        ${funcItem.subtitle ? `<div class="ms-article-subtitle">${funcItem.subtitle}</div>` : ""}
         <div class="ms-badge-row">
-          <span class="ms-badge">Unity: ${funcItem.unitySig}</span>
-          <span class="ms-badge">Godot C#: ${funcItem.godotCsSig}</span>
-          <span class="ms-badge">C++: ${funcItem.cppSig}</span>
-          <span class="ms-badge">UE C++: ${funcItem.unrealSig}</span>
+          <span class="ms-badge">Unity: ${funcItem.unitySig.split('\n')[0]}</span>
+          <span class="ms-badge">Godot C#: ${funcItem.godotCsSig.split('\n')[0]}</span>
+          <span class="ms-badge">C++: ${funcItem.cppSig.split('\n')[0]}</span>
+          <span class="ms-badge">UE C++: ${funcItem.unrealSig.split('\n')[0]}</span>
         </div>
         <p class="ms-article-summary">${funcItem.summary}</p>
         ${funcItem.tldr ? `<div class="ms-formula-box" style="margin-top:10px;border-left-color:#51cf66;"><strong>${funcItem.tldr}</strong></div>` : ""}
@@ -65,28 +76,46 @@ export class AppView {
         <h2 class="ms-section-title">Code Temps Réel (Multi-Moteurs)</h2>
         <div class="ms-code-grid">
           <div class="ms-code-card">
-            <div class="ms-code-header">Unity (C# Mathf / Quaternion)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.unity} <span>Unity (C# Mathf)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-unity"></code></pre>
           </div>
           <div class="ms-code-card">
-            <div class="ms-code-header">Godot 4 (C# Godot.Mathf)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.godot} <span>Godot 4 (C# Godot.Mathf)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-godotCs"></code></pre>
           </div>
           <div class="ms-code-card">
-            <div class="ms-code-header">.NET (C# System.Numerics)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.dotnet} <span>.NET (C# System.Numerics)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-dotnet"></code></pre>
           </div>
           <div class="ms-code-card">
-            <div class="ms-code-header">C++ (std / GLM)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.cpp} <span>C++ (std / GLM)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-cpp"></code></pre>
           </div>
           <div class="ms-code-card">
-            <div class="ms-code-header">Unreal Engine (C++ FMath / FQuat)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.unreal} <span>Unreal Engine (C++ FMath)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-unreal"></code></pre>
           </div>
           <div class="ms-code-card">
-            <div class="ms-code-header">Unreal Engine (Blueprint)</div>
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.unreal} <span>Unreal Engine (Blueprint)</span>
+            </div>
             <pre class="ms-code-pre"><code id="code-blueprint"></code></pre>
+          </div>
+          <div class="ms-code-card">
+            <div class="ms-code-header" style="justify-content: flex-start; gap: 8px;">
+              ${this.icons.python} <span>Python (math / numpy)</span>
+            </div>
+            <pre class="ms-code-pre"><code id="code-python"></code></pre>
           </div>
         </div>
       </section>
@@ -165,6 +194,9 @@ export class AppView {
     document.getElementById("code-cpp").textContent = snippets.cpp;
     document.getElementById("code-unreal").textContent = snippets.unreal;
     document.getElementById("code-blueprint").textContent = snippets.blueprint;
+    
+    const pyEl = document.getElementById("code-python");
+    if(pyEl) pyEl.textContent = snippets.python || "// Non défini";
 
     const tableContainer = document.getElementById("live-table-container");
     if (!tableContainer) return;
@@ -202,14 +234,17 @@ export class AppView {
 
       tableContainer.innerHTML = `<table class="ms-table"><thead><tr><th>Point</th><th>Angle</th><th>Rayon</th><th>Coordonnées (X, Y)</th><th>Sortie ${funcItem.name}</th></tr></thead><tbody>${rows}</tbody></table>`;
     } else if (state.vecA && state.vecB) {
+      const ax = state.vecA.x || 0; const ay = state.vecA.y || 0; const az = state.vecA.z || 0;
+      const bx = state.vecB.x || 0; const by = state.vecB.y || 0; const bz = state.vecB.z || 0;
+      
       tableContainer.innerHTML = `
         <table class="ms-table">
           <thead><tr><th>Vecteur A</th><th>Vecteur B</th><th>Dot (A · B)</th><th>Déterminant 2D</th></tr></thead>
           <tbody>
             <tr>
-              <td>(${state.vecA.x.toFixed(2)}, ${state.vecA.y.toFixed(2)}, ${state.vecA.z.toFixed(2)})</td>
-              <td>(${state.vecB.x.toFixed(2)}, ${state.vecB.y.toFixed(2)}, ${state.vecB.z.toFixed(2)})</td>
-              <td><strong>${state.dot.toFixed(3)}</strong></td>
+              <td>(${ax.toFixed(2)}, ${ay.toFixed(2)}, ${az.toFixed(2)})</td>
+              <td>(${bx.toFixed(2)}, ${by.toFixed(2)}, ${bz.toFixed(2)})</td>
+              <td><strong>${(state.dot || 0).toFixed(3)}</strong></td>
               <td><strong>${(state.det || 0).toFixed(3)}</strong></td>
             </tr>
           </tbody>
@@ -229,6 +264,8 @@ export class AppView {
         .join("");
 
       tableContainer.innerHTML = `<table class="ms-table"><thead><tr><th>Sonde</th><th>Entrée (X)</th><th>Sortie f(X)</th></tr></thead><tbody>${rows}</tbody></table>`;
+    } else {
+        tableContainer.innerHTML = "";
     }
   }
 }
