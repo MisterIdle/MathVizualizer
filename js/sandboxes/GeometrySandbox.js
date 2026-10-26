@@ -5,6 +5,7 @@ export class GeometrySandbox extends BaseSandbox {
     super(canvas, funcItem, onStateChange);
     this.mode = funcItem.id;
     this.draggingTarget = null;
+    this.parentAngle = 30;
 
     this.pointA = { x: -1.8, y: -1.2, z: 0 };
     this.pointB = { x: 1.8, y: -1.2, z: 0 };
@@ -59,24 +60,41 @@ export class GeometrySandbox extends BaseSandbox {
         }
       ];
     }
+    if (this.mode === "transformpoint") {
+      return [
+        { type: "range", key: "parentAngle", label: "Rotation du Parent (°)", min: -180, max: 180, step: 5, value: this.parentAngle, onChange: (val) => { this.parentAngle = val; this.updateStateAndRender(); } }
+      ];
+    }
     return [];
   }
-
+  
   bindEvents() {
     const onDown = (e) => {
       if (this.mode === "euclide") return;
       const pos = this.getMousePos(e);
       const { cx, cy, scale } = this.getGeometry();
-      const checkHit = (p) => Math.hypot(pos.x - (cx + p.x * scale), pos.y - (cy - p.y * scale)) < 30;
+      const checkHit = (worldX, worldY) => Math.hypot(pos.x - (cx + worldX * scale), pos.y - (cy - worldY * scale)) < 30;
 
       if (this.mode === "pythagore") {
-        if (checkHit(this.pointA)) this.draggingTarget = "A";
-        else if (checkHit(this.pointC)) this.draggingTarget = "C";
+        if (checkHit(this.pointA.x, this.pointA.y)) this.draggingTarget = "A";
+        else if (checkHit(this.pointC.x, this.pointC.y)) this.draggingTarget = "C";
       } else if (this.mode === "thales") {
-        if (checkHit(this.pointB)) this.draggingTarget = "B";
-        else if (checkHit(this.pointD)) this.draggingTarget = "D";
+        if (checkHit(this.pointB.x, this.pointB.y)) this.draggingTarget = "B";
+        else if (checkHit(this.pointD.x, this.pointD.y)) this.draggingTarget = "D";
       } else if (this.mode === "normalized") {
-        if (checkHit(this.pointB)) this.draggingTarget = "B";
+        if (checkHit(this.pointB.x, this.pointB.y)) this.draggingTarget = "B";
+      } else if (this.mode === "aabb") {
+        if (checkHit(this.pointA.x, this.pointA.y)) this.draggingTarget = "A";
+        else if (checkHit(this.pointB.x, this.pointB.y)) this.draggingTarget = "B";
+      } else if (this.mode === "transformpoint") {
+        // Calcul visuel du point dans le Monde
+        const pRad = this.parentAngle * Math.PI / 180;
+        const cosA = Math.cos(pRad), sinA = Math.sin(pRad);
+        const wBx = this.pointA.x + this.pointB.x * cosA - this.pointB.y * sinA;
+        const wBy = this.pointA.y + this.pointB.x * sinA + this.pointB.y * cosA;
+        
+        if (checkHit(this.pointA.x, this.pointA.y)) this.draggingTarget = "A";
+        else if (checkHit(wBx, wBy)) this.draggingTarget = "B";
       }
     };
 
@@ -88,37 +106,34 @@ export class GeometrySandbox extends BaseSandbox {
       const vy = Math.max(-2.2, Math.min(2.2, (cy - pos.y) / scale));
 
       if (this.mode === "pythagore") {
+        if (this.draggingTarget === "A") { this.pointA.x = vx; this.pointA.y = vy; this.pointB.y = vy; }
+        if (this.draggingTarget === "C") { this.pointC.x = vx; this.pointC.y = vy; this.pointB.x = vx; }
+      } else if (this.mode === "thales") {
+        if (this.draggingTarget === "B") { this.pointB.x = Math.max(-1.8, Math.min(1.2, vx)); this.pointC.x = this.pointB.x; this.pointB.y = Math.max(-0.8, Math.min(1.6, vy)); }
+        if (this.draggingTarget === "D") { this.pointD.x = Math.max(this.pointB.x + 0.5, Math.min(3.2, vx)); }
+      } else if (this.mode === "normalized") {
+        if (this.draggingTarget === "B") { this.pointB.x = vx; this.pointB.y = vy; }
+      } else if (this.mode === "aabb") {
+        if (this.draggingTarget === "A") { this.pointA.x = vx; this.pointA.y = vy; }
+        if (this.draggingTarget === "B") { this.pointB.x = vx; this.pointB.y = vy; }
+      } else if (this.mode === "transformpoint") {
         if (this.draggingTarget === "A") {
           this.pointA.x = vx;
           this.pointA.y = vy;
-          this.pointB.y = vy;
-        }
-        if (this.draggingTarget === "C") {
-          this.pointC.x = vx;
-          this.pointC.y = vy;
-          this.pointB.x = vx;
-        }
-      } else if (this.mode === "thales") {
-        if (this.draggingTarget === "B") {
-          this.pointB.x = Math.max(-1.8, Math.min(1.2, vx));
-          this.pointC.x = this.pointB.x;
-          this.pointB.y = Math.max(-0.8, Math.min(1.6, vy));
-        }
-        if (this.draggingTarget === "D") {
-          this.pointD.x = Math.max(this.pointB.x + 0.5, Math.min(3.2, vx));
-        }
-      } else if (this.mode === "normalized") {
-        if (this.draggingTarget === "B") {
-          this.pointB.x = vx;
-          this.pointB.y = vy;
+        } else if (this.draggingTarget === "B") {
+          // Conversion mathématique Inverse pour passer de la souris (Monde) à l'offset (Local)
+          const pRad = this.parentAngle * Math.PI / 180;
+          const cosA = Math.cos(-pRad), sinA = Math.sin(-pRad);
+          const dx = vx - this.pointA.x;
+          const dy = vy - this.pointA.y;
+          this.pointB.x = dx * cosA - dy * sinA;
+          this.pointB.y = dx * sinA + dy * cosA;
         }
       }
       this.updateStateAndRender();
     };
 
-    const onUp = () => {
-      this.draggingTarget = null;
-    };
+    const onUp = () => { this.draggingTarget = null; };
 
     this.canvas.addEventListener("mousedown", onDown);
     window.addEventListener("mousemove", onMove);
@@ -381,6 +396,61 @@ export class GeometrySandbox extends BaseSandbox {
         18,
         this.height - 16
       );
+      return;
+    }
+
+    if (this.mode === "aabb") {
+      const wA = 1.6, hA = 1.2, wB = 1.2, hB = 1.4;
+      const minXA = this.pointA.x - wA/2, maxXA = this.pointA.x + wA/2;
+      const minYA = this.pointA.y - hA/2, maxYA = this.pointA.y + hA/2;
+      const minXB = this.pointB.x - wB/2, maxXB = this.pointB.x + wB/2;
+      const minYB = this.pointB.y - hB/2, maxYB = this.pointB.y + hB/2;
+
+      const hit = (minXA <= maxXB && maxXA >= minXB) && (minYA <= maxYB && maxYA >= minYB);
+      const color = hit ? "#ff6b6b" : "#51cf66";
+
+      ctx.fillStyle = hit ? "rgba(255, 107, 107, 0.2)" : "rgba(81, 207, 102, 0.15)";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      
+      const drawBox = (x, y, w, h) => {
+        ctx.fillRect(cx + (x - w/2) * scale, cy - (y + h/2) * scale, w * scale, h * scale);
+        ctx.strokeRect(cx + (x - w/2) * scale, cy - (y + h/2) * scale, w * scale, h * scale);
+      };
+      
+      drawBox(this.pointA.x, this.pointA.y, wA, hA);
+      drawBox(this.pointB.x, this.pointB.y, wB, hB);
+      this.drawPoint(ctx, cx + this.pointA.x*scale, cy - this.pointA.y*scale, color, "Boîte A");
+      this.drawPoint(ctx, cx + this.pointB.x*scale, cy - this.pointB.y*scale, color, "Boîte B");
+      
+      ctx.fillStyle = color;
+      ctx.fillText(hit ? "💥 COLLISION DÉTECTÉE !" : "✓ Aucun contact", 18, this.height - 16);
+      return;
+    }
+
+    if (this.mode === "transformpoint") {
+      const pRad = this.parentAngle * Math.PI / 180;
+      const cosA = Math.cos(pRad), sinA = Math.sin(pRad);
+
+      const worldX = this.pointA.x + this.pointB.x * cosA - this.pointB.y * sinA;
+      const worldY = this.pointA.y + this.pointB.x * sinA + this.pointB.y * cosA;
+
+      const pP = { x: cx + this.pointA.x * scale, y: cy - this.pointA.y * scale };
+      const pW = { x: cx + worldX * scale, y: cy - worldY * scale };
+
+      ctx.save();
+      ctx.translate(pP.x, pP.y);
+      ctx.rotate(-pRad);
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-100, -100, 200, 200);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.pointB.x*scale, -this.pointB.y*scale);
+      ctx.strokeStyle = "#4cc2ff"; ctx.stroke();
+      ctx.restore();
+
+      this.drawPoint(ctx, pP.x, pP.y, "#fcc419", `Parent (${this.pointA.x.toFixed(1)}, ${this.pointA.y.toFixed(1)})`);
+      this.drawPoint(ctx, pW.x, pW.y, "#51cf66", `Monde (${worldX.toFixed(1)}, ${worldY.toFixed(1)})`);
+      return;
     }
   }
 }

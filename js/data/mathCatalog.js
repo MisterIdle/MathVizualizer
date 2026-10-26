@@ -1,5 +1,7 @@
 export const MATH_CATALOG = [
-
+  // ==========================================
+  // 0. Vecteurs & Fondamentaux
+  // ==========================================
   {
     id: "direction",
     icon: "🧭",
@@ -194,6 +196,9 @@ export const MATH_CATALOG = [
     ]
   },
 
+  // ==========================================
+  // 1. Trigonométrie
+  // ==========================================
   {
     id: "cos",
     icon: "↔️",
@@ -405,6 +410,9 @@ export const MATH_CATALOG = [
     ]
   },
 
+  // ==========================================
+  // 2. Quaternions & Rotations 3D
+  // ==========================================
   {
     id: "euler",
     icon: "🎲",
@@ -489,7 +497,52 @@ export const MATH_CATALOG = [
       { title: "1. Tourelle 3D fluide", desc: "transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 5f);" }
     ]
   },
+  {
+    id: "quatmult",
+    icon: "🔗",
+    name: "Multiplication de Quaternions",
+    subtitle: "Additionner des Rotations",
+    category: "2. Quaternions & Rotations 3D",
+    sandbox: "space3d",
+    unitySig: "Quaternion q3 = q_parent * q_local;",
+    dotnetSig: "Quaternion q3 = q_parent * q_local;",
+    godotCsSig: "Quaternion q3 = q_parent * q_local;",
+    cppSig: "glm::quat q3 = q_parent * q_local;",
+    unrealSig: "FQuat Q3 = Q_Parent * Q_Local;",
+    bpSig: "Combine Rotators",
+    pySig: "q3 = Rotation.from_quat(q_parent) * Rotation.from_quat(q_local)",
+    summary: "Applique une rotation locale par-dessus une rotation parente. L'ordre est vital : Q1 * Q2 n'est pas pareil que Q2 * Q1 en 3D.",
+    tldr: "Ne faites jamais q1 + q2 ! Multipliez-les pour les combiner. L'opération s'applique de droite à gauche.",
+    formula: "q_result = q_parent * q_local",
+    examples: [
+      { title: "1. Tourner la tête depuis l'épaule", desc: "head.rotation = shoulder.rotation * localHeadRot;" }
+    ]
+  },
+  {
+    id: "quatinverse",
+    icon: "⏪",
+    name: "Quaternion.Inverse",
+    subtitle: "Rotation Opposée",
+    category: "2. Quaternions & Rotations 3D",
+    sandbox: "space3d",
+    unitySig: "Quaternion inv = Quaternion.Inverse(q);",
+    dotnetSig: "Quaternion inv = Quaternion.Inverse(q);",
+    godotCsSig: "Quaternion inv = q.Inverse();",
+    cppSig: "glm::quat inv = glm::inverse(q);",
+    unrealSig: "FQuat Inv = Q.Inverse();",
+    bpSig: "Invert Rotator",
+    pySig: "inv = q.inv()",
+    summary: "Donne la rotation exactement opposée. Si un quaternion tourne de 90° à droite, son inverse tournera de 90° à gauche.",
+    tldr: "Très utile pour extraire une rotation locale à partir de la rotation du monde : q_local = Inverse(q_parent) * q_world.",
+    formula: "q⁻¹ = conjugate(q) / ||q||²",
+    examples: [
+      { title: "2. Annuler la rotation d'un parent", desc: "transform.rotation = Quaternion.Inverse(parent.rotation) * targetRot;" }
+    ]
+  },
 
+  // ==========================================
+  // 3. Espace & Géométrie
+  // ==========================================
   {
     id: "coord3d",
     icon: "🌐",
@@ -574,7 +627,94 @@ export const MATH_CATALOG = [
       { title: "1. Foot IK sur escaliers", desc: "Calcule l'angle de pliure du genou selon la hauteur de la marche." }
     ]
   },
+  {
+    id: "transformpoint",
+    icon: "🌍",
+    name: "TransformPoint",
+    subtitle: "Coordonnées Locales vers Monde",
+    category: "3. Espace & Géométrie",
+    sandbox: "geometry",
+    unitySig: "transform.TransformPoint(localPos)",
+    dotnetSig: "Vector3.Transform(localPos, worldMatrix)",
+    godotCsSig: "ToGlobal(localPos)",
+    cppSig: "worldMatrix * vec4(localPos, 1.0)",
+    unrealSig: "Component->GetComponentTransform().TransformPosition(LocalPos)",
+    bpSig: "Transform Location",
+    pySig: "world_pos = matrix @ local_pos",
+    summary: "Convertit des coordonnées relatives (ex: '2 mètres devant le joueur') en coordonnées absolues dans la scène 3D globale.",
+    tldr: "InverseTransformPoint fait l'inverse : il trouve où se situe un point du monde par rapport au pivot de votre objet.",
+    formula: "P_world = M_trs · P_local",
+    examples: [
+      { title: "1. Spawner à l'embout du canon", desc: "Vector3 spawnPos = gunTip.TransformPoint(new Vector3(0, 0, 0.5f));" }
+    ]
+  },
+  {
+    id: "projectonplane",
+    icon: "🛹",
+    name: "ProjectOnPlane",
+    subtitle: "Glisser sur une pente",
+    category: "3. Espace & Géométrie",
+    sandbox: "project",
+    unitySig: "Vector3.ProjectOnPlane(vector, planeNormal)",
+    dotnetSig: "vector - Vector3.Dot(vector, normal) * normal",
+    godotCsSig: "vector.Slide(normal)",
+    cppSig: "vector - glm::dot(vector, normal) * normal",
+    unrealSig: "FVector::VectorPlaneProject(Vector, Normal)",
+    bpSig: "Project Vector on to Plane",
+    pySig: "proj = v - dot(v, n) * n",
+    summary: "Écrase un vecteur directeur sur un plan incliné défini par sa normale, éliminant toute pénétration dans ce plan.",
+    tldr: "Indispensable pour faire marcher un personnage le long d'une pente sans qu'il ne s'enfonce dans le sol ou ne s'envole.",
+    formula: "V_plane = V - (V · N)N",
+    examples: [
+      { title: "1. Déplacement au sol", desc: "moveDir = Vector3.ProjectOnPlane(inputDir, groundHit.normal);" }
+    ]
+  },
+  {
+    id: "aabb",
+    icon: "📦",
+    name: "AABB (Bounding Box)",
+    subtitle: "Collision Rectiligne",
+    category: "3. Espace & Géométrie",
+    sandbox: "geometry",
+    unitySig: "boundsA.Intersects(boundsB)",
+    dotnetSig: "boxA.Intersects(boxB)",
+    godotCsSig: "rectA.Intersects(rectB)",
+    cppSig: "intersectAABB(boxA, boxB)",
+    unrealSig: "FBox::Intersect(BoxA, BoxB)",
+    bpSig: "Box Overlap",
+    pySig: "intersect = minA < maxB and maxA > minB",
+    summary: "Vérifie si deux boîtes non orientées (alignées sur les axes du monde) se rentrent dedans en comparant leurs extrêmes X, Y et Z.",
+    tldr: "L'algorithme de collision le plus rapide. Utilisé comme premier filtre (Broadphase) avant de faire des calculs précis coûteux.",
+    formula: "(A.minX ≤ B.maxX) ∧ (A.maxX ≥ B.minX)",
+    examples: [
+      { title: "1. Optimisation Culling", desc: "if (cameraBounds.Intersects(objectBounds)) { Draw(); }" }
+    ]
+  },
+  {
+    id: "rayplane",
+    icon: "🔫",
+    name: "Intersection Rayon-Plan",
+    subtitle: "Où pointe la souris ?",
+    category: "3. Espace & Géométrie",
+    sandbox: "project",
+    unitySig: "plane.Raycast(ray, out float distance)",
+    dotnetSig: "Plane.Intersects(Ray)",
+    godotCsSig: "plane.IntersectsRay(origin, dir)",
+    cppSig: "intersectRayPlane(origin, dir, normal, dist)",
+    unrealSig: "FMath::RayPlaneIntersection(Origin, Dir, Plane)",
+    bpSig: "Line Plane Intersection",
+    pySig: "t = -dot(origin - p0, n) / dot(dir, n)",
+    summary: "Trouve le point d'impact exact (la distance) d'un vecteur traversant une surface plate théorique infinie.",
+    tldr: "La technique standard des jeux RTS ou Hack'n'Slash pour récupérer la position au sol de la souris, sans nécessiter de Mesh Collider complexe.",
+    formula: "t = -(O·N + d) / (D·N)",
+    examples: [
+      { title: "1. Viser au curseur de souris", desc: "if (floorPlane.Raycast(mouseRay, out float d)) { lookTarget = mouseRay.GetPoint(d); }" }
+    ]
+  },
 
+  // ==========================================
+  // 4. Algèbre Linéaire & Physique
+  // ==========================================
   {
     id: "dot",
     icon: "🔦",
@@ -702,6 +842,9 @@ export const MATH_CATALOG = [
     ]
   },
 
+  // ==========================================
+  // 5. Interpolations & Courbes
+  // ==========================================
   {
     id: "lerp",
     icon: "🛤️",
@@ -856,7 +999,31 @@ export const MATH_CATALOG = [
       { title: "1. Courbe d'XP RPG", desc: "xpRequired = 100f * Mathf.Pow(level, 2f);" }
     ]
   },
+  {
+    id: "catmullrom",
+    icon: "🎢",
+    name: "Splines Catmull-Rom",
+    subtitle: "Trajectoires via points stricts",
+    category: "5. Interpolations & Courbes",
+    sandbox: "barycentre",
+    unitySig: "Custom_CatmullRom(P0, P1, P2, P3, t)",
+    dotnetSig: "Vector3.Hermite(P1, T1, P2, T2, t)",
+    godotCsSig: "Curve3D.GetPoint(t)",
+    cppSig: "catmullRom(p0, p1, p2, p3, t)",
+    unrealSig: "FMath::CubicCRSplineInterp(P0, P1, P2, P3, t)",
+    bpSig: "Get Spline Point at Time",
+    pySig: "catmull_rom(p0, p1, p2, p3, t)",
+    summary: "Trace une courbe douce qui passe OBLIGATOIREMENT par tous les points de contrôle fournis (à l'inverse de Bézier qui est seulement 'attirée').",
+    tldr: "L'outil mathématique par défaut pour concevoir une route de course fluide, un vol de dragon, ou les rails d'une caméra cinématique.",
+    formula: "P(t) = 0.5(2P₁ + (-P₀+P₂)t + ...)",
+    examples: [
+      { title: "1. Rails de Caméra (Dolly)", desc: "camPos = Spline.EvaluateCatmullRom(nodes, progress);" }
+    ]
+  },
 
+  // ==========================================
+  // 6. Bruit Procédural & Couleurs
+  // ==========================================
   {
     id: "perlinnoise",
     icon: "🏔️",
@@ -897,6 +1064,36 @@ export const MATH_CATALOG = [
     formula: "T(K) → Color(R, G, B)",
     examples: [
       { title: "1. Cycle Jour / Nuit", desc: "sun.color = Mathf.CorrelatedColorTemperatureToRGB(kelvin);" }
+    ]
+  },
+
+  // ==========================================
+  // 7. Probabilités & Aléatoire
+  // ==========================================
+  {
+    id: "gaussian",
+    icon: "🔔",
+    name: "Loi Normale (Gauss)",
+    subtitle: "Aléatoire autour d'une cible",
+    category: "7. Probabilités & Aléatoire",
+    sandbox: "graph",
+    unitySig: "Custom_BoxMuller(mean, stdDev)",
+    dotnetSig: "GenerateGaussian(mean, stdDev)",
+    godotCsSig: "rand.Randfn(mean, stdDev)",
+    cppSig: "std::normal_distribution<float> d(m, s)",
+    unrealSig: "FMath::VRandCone() (Dérivé)",
+    bpSig: "Random Float in Range",
+    pySig: "random.gauss(mean, std_dev)",
+    summary: "Génère des nombres aléatoires qui tombent majoritairement très près de la moyenne (courbe en cloche), avec de rares extrêmes.",
+    tldr: "Si le recul d'un fusil utilise un aléatoire classique (Uniforme), la zone de tir sera carrée et chaotique. Avec Gauss, la majorité des balles touche le centre.",
+    formula: "f(x) = (1 / σ√2π) · e^(-½((x-μ)/σ)²)",
+    params: [
+      { key: "a", label: "Moyenne (Cible X)", min: -3, max: 3, step: 0.5, value: 0 },
+      { key: "b", label: "Écart Type (Dispersion)", min: 0.2, max: 2, step: 0.1, value: 0.5 }
+    ],
+    examples: [
+      { title: "1. Dispersion d'arme réaliste", desc: "float aimOffset = BoxMuller(0f, weaponInaccuracy);" },
+      { title: "2. Équilibrage des butins de RPG", desc: "int baseGold = (int)BoxMuller(100f, 15f);" }
     ]
   }
 ];

@@ -15,10 +15,12 @@ export class VectorSandbox extends BaseSandbox {
     this.rangeLimit = 2.5;
 
     this.normalizeVectors =
-      (this.mode === "dot" || this.mode === "cross") &&
+      (this.mode === "dot" || this.mode === "cross" || this.mode === "project") &&
       this.id !== "direction" &&
       this.id !== "magnitude" &&
-      this.id !== "reflect";
+      this.id !== "reflect" &&
+      this.id !== "projectonplane" &&
+      this.id !== "rayplane";
     this.draggingTarget = null;
 
     if (this.id === "reflect") {
@@ -48,21 +50,35 @@ export class VectorSandbox extends BaseSandbox {
         { type: "range", key: "range", label: "Portée du Radar", min: 1.0, max: 4.5, step: 0.1, value: this.rangeLimit, onChange: (v) => { this.rangeLimit = v; this.updateStateAndRender(); } }
       ];
     }
-    if ((this.mode === "dot" || this.mode === "cross") && this.id !== "direction" && this.id !== "magnitude" && this.id !== "reflect") {
+    if ((this.mode === "dot" || this.mode === "cross" || this.mode === "project") && this.id !== "direction" && this.id !== "magnitude" && this.id !== "reflect" && this.id !== "projectonplane" && this.id !== "rayplane") {
       return [
         { type: "button", label: "Normaliser A & B (Longueur = 1) : On/Off", onClick: () => { this.normalizeVectors = !this.normalizeVectors; this.updateStateAndRender(); } }
       ];
     }
     return [];
   }
-
+  
   bindEvents() {
     const onDown = (e) => {
       const pos = this.getMousePos(e);
       const { cx, cy, scale } = this.getGeometry();
-      const aScr = this.project(this.currentA || this.vecA, cx, cy, scale);
-      const bScr = this.project(this.currentB || this.vecB, cx, cy, scale);
-      const cScr = this.project(this.vecC, cx, cy, scale);
+
+      let hitA = this.currentA || this.vecA;
+      let hitB = this.currentB || this.vecB;
+      let hitC = this.vecC;
+
+      if (this.id === "rayplane") {
+        hitA = { x: hitC.x + hitA.x, y: hitC.y + hitA.y };
+        hitB = this.normalize(hitB);
+      } else if (this.id === "projectonplane") {
+        hitB = this.normalize(hitB);
+      } else if (this.id === "reflect") {
+        hitA = this.normalize(hitA);
+      }
+
+      const aScr = this.project(hitA, cx, cy, scale);
+      const bScr = this.project(hitB, cx, cy, scale);
+      const cScr = this.project(hitC, cx, cy, scale);
 
       if (Math.hypot(pos.x - aScr.x, pos.y - aScr.y) < 28) this.draggingTarget = "A";
       else if (Math.hypot(pos.x - bScr.x, pos.y - bScr.y) < 28) this.draggingTarget = "B";
@@ -76,12 +92,22 @@ export class VectorSandbox extends BaseSandbox {
       const vx = Math.max(-4.2, Math.min(4.2, (pos.x - cx) / scale));
       const vy = Math.max(-3.2, Math.min(3.2, (cy - pos.y) / scale));
 
-      if (this.draggingTarget === "A") { this.vecA.x = vx; this.vecA.y = vy; }
+      if (this.draggingTarget === "A") {
+        if (this.id === "rayplane") {
+          // On soustrait l'origine du rayon (C) pour retrouver le vecteur direction (A)
+          this.vecA.x = vx - this.vecC.x;
+          this.vecA.y = vy - this.vecC.y;
+        } else {
+          this.vecA.x = vx;
+          this.vecA.y = vy;
+        }
+      }
       else if (this.draggingTarget === "B") { this.vecB.x = vx; this.vecB.y = vy; }
       else if (this.draggingTarget === "C") { this.vecC.x = vx; this.vecC.y = vy; }
+      
       this.updateStateAndRender();
     };
-
+    
     const onUp = () => { this.draggingTarget = null; };
 
     this.canvas.addEventListener("mousedown", onDown);
@@ -290,6 +316,7 @@ export class VectorSandbox extends BaseSandbox {
         y: inVec.y - 2 * dotProd * normA.y
       };
       const pRef = this.project(refVec, cx, cy, scale);
+      const pNormA = this.project(normA, cx, cy, scale);
 
       this.drawArrow(ctx, pB.x, pB.y, cx, cy, colors.colorZ, "");
       this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Source Laser B (Glissez)");
@@ -429,7 +456,7 @@ export class VectorSandbox extends BaseSandbox {
       return;
     }
 
-    if (this.mode === "project") {
+    if (this.id === "project") {
       const bLenSq = this.currentB.x ** 2 + this.currentB.y ** 2 || 1;
       const projFactor = this.currentDot / bLenSq;
       const projVec = { x: this.currentB.x * projFactor, y: this.currentB.y * projFactor, z: 0 };
@@ -440,6 +467,66 @@ export class VectorSandbox extends BaseSandbox {
       this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `Mur / Rail B`);
       this.drawArrow(ctx, pA.x, pA.y, pProj.x, pProj.y, "#51cf66", "", true);
       this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#fcc419", `Projeté H (Dist=${distOrtho.toFixed(2)})`);
+      return;
+    }
+
+    if (this.id === "projectonplane") {
+      const normB = this.normalize(this.currentB);
+      const tx = -normB.y, ty = normB.x;
+
+      ctx.strokeStyle = "#8a8886";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(cx - tx * scale * 5, cy + ty * scale * 5);
+      ctx.lineTo(cx + tx * scale * 5, cy - ty * scale * 5);
+      ctx.stroke();
+
+      const dot = this.currentA.x * normB.x + this.currentA.y * normB.y;
+      const projVec = { x: this.currentA.x - dot * normB.x, y: this.currentA.y - dot * normB.y };
+      
+      const pProj = this.project(projVec, cx, cy, scale);
+      const pNorm = this.project(normB, cx, cy, scale);
+
+      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, "#fcc419", "Normale Plan N");
+      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, "Mouvement Brut V");
+      this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#51cf66", "Glissement (ProjectOnPlane)");
+      return;
+    }
+
+    if (this.id === "rayplane") {
+      const normB = this.normalize(this.currentB);
+      const tx = -normB.y, ty = normB.x;
+
+      ctx.strokeStyle = "#8a8886";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - tx * scale * 5, cy + ty * scale * 5);
+      ctx.lineTo(cx + tx * scale * 5, cy - ty * scale * 5);
+      ctx.stroke();
+
+      const pOrigin = this.project(this.vecC, cx, cy, scale);
+      const pNorm = this.project(normB, cx, cy, scale);
+      const pDir = this.project({ x: this.vecC.x + this.currentA.x, y: this.vecC.y + this.currentA.y }, cx, cy, scale);
+
+      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, "#fcc419", "Normale N");
+      this.drawPointWithLabel(ctx, pOrigin.x, pOrigin.y, colors.colorX, "Fusil (Origine)");
+      this.drawArrow(ctx, pOrigin.x, pOrigin.y, pDir.x, pDir.y, colors.colorX, "");
+
+      const denom = this.currentA.x * normB.x + this.currentA.y * normB.y;
+      if (Math.abs(denom) > 0.001) {
+        const t = -(this.vecC.x * normB.x + this.vecC.y * normB.y) / denom;
+        if (t >= 0) {
+          const hit = { x: this.vecC.x + this.currentA.x * t, y: this.vecC.y + this.currentA.y * t };
+          const pHit = this.project(hit, cx, cy, scale);
+
+          ctx.setLineDash([6, 4]);
+          ctx.strokeStyle = colors.colorX;
+          ctx.beginPath(); ctx.moveTo(pOrigin.x, pOrigin.y); ctx.lineTo(pHit.x, pHit.y); ctx.stroke();
+          ctx.setLineDash([]);
+          
+          this.drawPointWithLabel(ctx, pHit.x, pHit.y, "#cc5de8", `Impact (Raycast Hit) t=${t.toFixed(1)}`);
+        }
+      }
       return;
     }
 

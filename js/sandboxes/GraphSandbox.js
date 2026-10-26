@@ -64,8 +64,18 @@ export class GraphSandbox extends BaseSandbox {
     };
   }
 
+  evaluateValue(id, x, params) {
+    if (id === "gaussian") {
+      const mean = params.a !== undefined ? params.a : 0;
+      const stdDev = Math.max(0.01, params.b !== undefined ? params.b : 0.5);
+      const factor = 1.0 / (stdDev * Math.sqrt(2 * Math.PI));
+      return factor * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+    }
+    return MathEvaluator.evaluate1D(id, x, params);
+  }
+
   updateStateAndRender() {
-    const y = MathEvaluator.evaluate1D(this.funcItem.id, this.cursorX, this.params);
+    const y = this.evaluateValue(this.funcItem.id, this.cursorX, this.params);
     this.computedProbes = [
       {
         index: 1,
@@ -151,7 +161,7 @@ export class GraphSandbox extends BaseSandbox {
     ctx.lineWidth = 3;
     for (let px = 0; px <= this.width; px += 3) {
       const x = (px - cx) / scale;
-      const y = MathEvaluator.evaluate1D(this.funcItem.id, x, this.params);
+      const y = this.evaluateValue(this.funcItem.id, x, this.params);
       const py = cy - y * scale;
       if (px === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);

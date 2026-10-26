@@ -5,10 +5,12 @@ export class Space3DSandbox extends BaseSandbox {
     super(canvas, funcItem, onStateChange);
     this.mode = funcItem.id;
     this.camYaw = -0.6;
-    this.camPitch = 0.42;
+    this.camPitch = 1.0;
     this.pitch = 20;
     this.yaw = 35;
     this.roll = 10;
+    this.localYaw = 45;
+    this.localPitch = 0;
     this.axisX = 0.0;
     this.axisY = 1.0;
     this.axisZ = 0.0;
@@ -31,7 +33,7 @@ export class Space3DSandbox extends BaseSandbox {
       label: "Réinitialiser Vue 3D",
       onClick: () => {
         this.camYaw = -0.6;
-        this.camPitch = 0.42;
+        this.camPitch = 1.0;
         this.render();
       }
     };
@@ -74,6 +76,23 @@ export class Space3DSandbox extends BaseSandbox {
         { type: "range", key: "rho", label: "Distance Rayon (ρ)", min: 0.5, max: 2.3, step: 0.1, value: this.rho, onChange: (v) => { this.rho = v; this.updateStateAndRender(); } },
         { type: "range", key: "thetaDeg", label: "Angle Horizontal θ (°)", min: 0, max: 360, step: 5, value: this.thetaDeg, onChange: (v) => { this.thetaDeg = v; this.updateStateAndRender(); } },
         { type: "range", key: "phiDeg", label: "Angle depuis le Haut φ (°)", min: 5, max: 175, step: 5, value: this.phiDeg, onChange: (v) => { this.phiDeg = v; this.updateStateAndRender(); } },
+        resetBtn
+      ];
+    }
+    if (this.mode === "quatmult") {
+      return [
+        { type: "range", key: "yaw", label: "Parent Yaw Y (°)", min: -180, max: 180, step: 5, value: this.yaw, onChange: (v) => { this.yaw = v; this.updateStateAndRender(); } },
+        { type: "range", key: "pitch", label: "Parent Pitch X (°)", min: -90, max: 90, step: 5, value: this.pitch, onChange: (v) => { this.pitch = v; this.updateStateAndRender(); } },
+        { type: "range", key: "localYaw", label: "Local Yaw Y (°)", min: -180, max: 180, step: 5, value: this.localYaw, onChange: (v) => { this.localYaw = v; this.updateStateAndRender(); } },
+        { type: "range", key: "localPitch", label: "Local Pitch X (°)", min: -90, max: 90, step: 5, value: this.localPitch, onChange: (v) => { this.localPitch = v; this.updateStateAndRender(); } },
+        resetBtn
+      ];
+    }
+    if (this.mode === "quatinverse") {
+      return [
+        { type: "range", key: "pitch", label: "Pitch X (°)", min: -90, max: 90, step: 5, value: this.pitch, onChange: (v) => { this.pitch = v; this.updateStateAndRender(); } },
+        { type: "range", key: "yaw", label: "Yaw Y (°)", min: -180, max: 180, step: 5, value: this.yaw, onChange: (v) => { this.yaw = v; this.updateStateAndRender(); } },
+        { type: "range", key: "roll", label: "Roll Z (°)", min: -180, max: 180, step: 5, value: this.roll, onChange: (v) => { this.roll = v; this.updateStateAndRender(); } },
         resetBtn
       ];
     }
@@ -172,6 +191,19 @@ export class Space3DSandbox extends BaseSandbox {
     };
   }
 
+  multiplyQuat(q1, q2) {
+    return {
+      x: q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+      y: q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x,
+      z: q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w,
+      w: q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
+    };
+  }
+
+  inverseQuat(q) {
+    return { x: -q.x, y: -q.y, z: -q.z, w: q.w };
+  }
+
   project3D(p) {
     const cy = Math.cos(this.camYaw), sy = Math.sin(this.camYaw);
     const cp = Math.cos(this.camPitch), sp = Math.sin(this.camPitch);
@@ -204,6 +236,13 @@ export class Space3DSandbox extends BaseSandbox {
       q = this.slerpQuat(qStart, qEnd, this.slerpT);
       this.qStart = qStart;
       this.qEnd = qEnd;
+    } else if (this.mode === "quatmult") {
+      this.qParent = this.eulerToQuat(this.pitch, this.yaw, 0);
+      this.qLocal = this.eulerToQuat(this.localPitch, this.localYaw, 0);
+      q = this.multiplyQuat(this.qParent, this.qLocal);
+    } else if (this.mode === "quatinverse") {
+      this.qBase = this.eulerToQuat(this.pitch, this.yaw, this.roll);
+      q = this.inverseQuat(this.qBase);
     }
 
     this.currentQuat = q;
@@ -470,6 +509,17 @@ export class Space3DSandbox extends BaseSandbox {
     if (this.mode === "qslerp" && this.qStart && this.qEnd) {
       this.drawOrientedCube(ctx, this.qStart, 0.65, "#8a8886", 0.25);
       this.drawOrientedCube(ctx, this.qEnd, 0.65, "#fcc419", 0.25);
+    }
+
+    if (this.mode === "quatmult") {
+      this.drawOrientedCube(ctx, this.qParent, 0.65, "#8a8886", 0.4);
+      ctx.fillStyle = colors.text;
+      ctx.fillText("Cube Gris = Rotation Parente", 14, 25);
+    }
+    if (this.mode === "quatinverse") {
+      this.drawOrientedCube(ctx, this.qBase, 0.65, "#ff6b6b", 0.4);
+      ctx.fillStyle = "#ff6b6b";
+      ctx.fillText("Cube Rouge = Rotation Normale", 14, 25);
     }
 
     this.drawOrientedCube(ctx, this.currentQuat, 0.75, "#4cc2ff", 1.0);
