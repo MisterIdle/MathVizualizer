@@ -87,7 +87,6 @@ export class GeometrySandbox extends BaseSandbox {
         if (checkHit(this.pointA.x, this.pointA.y)) this.draggingTarget = "A";
         else if (checkHit(this.pointB.x, this.pointB.y)) this.draggingTarget = "B";
       } else if (this.mode === "transformpoint") {
-        // Calcul visuel du point dans le Monde
         const pRad = this.parentAngle * Math.PI / 180;
         const cosA = Math.cos(pRad), sinA = Math.sin(pRad);
         const wBx = this.pointA.x + this.pointB.x * cosA - this.pointB.y * sinA;
@@ -121,7 +120,6 @@ export class GeometrySandbox extends BaseSandbox {
           this.pointA.x = vx;
           this.pointA.y = vy;
         } else if (this.draggingTarget === "B") {
-          // Conversion mathématique Inverse pour passer de la souris (Monde) à l'offset (Local)
           const pRad = this.parentAngle * Math.PI / 180;
           const cosA = Math.cos(-pRad), sinA = Math.sin(-pRad);
           const dx = vx - this.pointA.x;

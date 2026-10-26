@@ -94,7 +94,6 @@ export class VectorSandbox extends BaseSandbox {
 
       if (this.draggingTarget === "A") {
         if (this.id === "rayplane") {
-          // On soustrait l'origine du rayon (C) pour retrouver le vecteur direction (A)
           this.vecA.x = vx - this.vecC.x;
           this.vecA.y = vy - this.vecC.y;
         } else {

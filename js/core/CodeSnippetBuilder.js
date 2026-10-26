@@ -11,10 +11,8 @@ export class CodeSnippetBuilder {
     if (funcItem.sandbox === "perlin") return this.buildPerlin(state);
     if (funcItem.sandbox === "colortemp") return this.buildColorTemp(state);
     
-    // On englobe Graph ET Geometry ici car ils utilisent le même système de fallback statique
     if (funcItem.sandbox === "graph" || funcItem.sandbox === "geometry") return this.buildGraph(funcItem, state);
     
-    // Fallback par défaut si rien ne matche
     return { unity: "// Vide", dotnet: "// Vide", godotCs: "// Vide", cpp: "// Vide", unreal: "// Vide", blueprint: "[Node: Unspecified]", python: "# Vide" };
   }
 
@@ -119,7 +117,6 @@ export class CodeSnippetBuilder {
     const sA = `${this.fmt(a.x)}f, ${this.fmt(a.y)}f, ${this.fmt(a.z || 0)}f`;
     const sB = `${this.fmt(b.x)}f, ${this.fmt(b.y)}f, ${this.fmt(b.z || 0)}f`;
 
-    // Si on est dans le mode statique Direction, Magnitude ou Reflect
     if (["direction", "magnitude", "reflect"].includes(funcItem.id)) {
        return {
           unity: `${funcItem.unitySig ? funcItem.unitySig.split('\n')[0] : "// Non défini"}`,

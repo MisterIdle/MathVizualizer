@@ -65,7 +65,7 @@ export class MathEvaluator {
     const b = params.b !== undefined ? params.b : 1;
 
     switch (funcId) {
-      case "euclide": // <-- AJOUT DU MODULO ICI
+      case "euclide":
         const modulo = Math.abs(a) < 0.001 ? 1 : a;
         let r = x % modulo;
         return r < 0 ? r + modulo : r;

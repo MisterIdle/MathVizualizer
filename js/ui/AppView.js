@@ -7,7 +7,6 @@ export class AppView {
     this.breadcrumbContainer = breadcrumbContainer;
     this.currentSandbox = null;
 
-    // Utilisation des VRAIS logos officiels via Devicon CDN
     this.icons = {
       unity: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg" style="width: 16px; height: 16px; filter: invert(1);" alt="Unity" />`,
       godot: `<img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/godot/godot-original.svg" style="width: 16px; height: 16px;" alt="Godot" />`,
