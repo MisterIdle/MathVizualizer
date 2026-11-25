@@ -3,127 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="La Bible Mathématique interactive du Game Programming & Gameplay Programming — 76 concepts visuels pour Unity, Godot, Unreal (C++ & Blueprint), C# et C++.">
+  <meta name="description" content="Bible Mathématique interactive du Game Programming & Gameplay Programming — 76 concepts visuels pour Unity, Godot, Unreal (C++ & Blueprint), C# et C++.">
   <link rel="icon" href="./icon/pie.png" type="image/png">
-  <title>Math Vizualizer — Bible Mathématique Game & Gameplay Programming</title>
-  <link rel="stylesheet" href="./css/tokens.css">
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/home.css">
+  <title>Math Vizualizer — Bible Mathématique Game &amp; Gameplay</title>
+  <link rel="stylesheet" href="./css/tokens.css?v=2.1">
+  <link rel="stylesheet" href="./css/base.css?v=2.1">
+  <link rel="stylesheet" href="./css/home.css?v=2.1">
 </head>
 <body>
-  <header class="mv-header">
-    <div class="mv-header-inner">
-      <div class="mv-header-left">
-        <a href="./index.html" class="mv-brand">
-          <span class="mv-brand-mark">π</span>
-          <div class="mv-brand-info">
-            <span class="mv-brand-title">Math Vizualizer</span>
-            <span class="mv-brand-sub">Par Alexy Houbloup · MisterIdle</span>
-          </div>
-        </a>
-        <nav class="mv-header-nav" aria-label="Navigation principale">
-          <a href="#catalog" class="mv-nav-item is-active">Bible (76)</a>
-          <a href="#paths" class="mv-nav-item">Parcours</a>
-        </nav>
-      </div>
+  <header class="gb-header">
+    <div class="gb-header-inner">
+      <a href="./index.html" class="gb-brand">
+        <span class="gb-brand-logo">π</span>
+        <span class="gb-brand-name">Math Vizualizer</span>
+        <span class="gb-brand-meta">Game &amp; Gameplay Programming</span>
+      </a>
 
-      <div class="mv-header-right">
-        <button type="button" id="mv-search-trigger" class="mv-search-trigger" aria-label="Rechercher">
-          <span id="mv-search-icon-slot"></span>
-          <span>Rechercher un concept...</span>
-          <kbd class="mv-kbd">Ctrl K</kbd>
+      <div class="gb-header-actions">
+        <button type="button" id="gb-search-trigger" class="gb-search-btn" aria-label="Rechercher">
+          <span id="gb-search-icon"></span>
+          <span>Rechercher...</span>
+          <kbd class="gb-kbd">Ctrl K</kbd>
         </button>
-        <button type="button" id="mv-xp-pill" class="mv-xp-pill" title="Voir votre progression"></button>
-        <button type="button" id="mv-theme-toggle" class="mv-btn mv-btn-icon" aria-label="Changer de thème"></button>
+        <button type="button" id="gb-theme-toggle" class="gb-btn gb-btn-icon" aria-label="Changer de thème"></button>
       </div>
     </div>
   </header>
 
-  <main class="mv-home-wrap">
-    <!-- Hero & Mastery Dashboard -->
-    <section class="mv-hero">
-      <div class="mv-hero-copy">
-        <div class="mv-eyebrow">Game Programming &amp; Gameplay Programming Reference</div>
-        <h1 class="mv-hero-title">Comprendre concrètement toutes les maths du jeu vidéo.</h1>
-        <p class="mv-hero-desc">
-          76 concepts interactifs classés par dimension (Généraliste, 2D, 3D) et par besoin gameplay.
-          Manipulez chaque notion en direct sur canvas, comparez le code temps réel et visualisez les nœuds Blueprint.
+  <div class="gb-shell">
+    <aside class="gb-sidebar" aria-label="Navigation de la documentation">
+      <div class="gb-sidebar-head">
+        <a href="./index.html" class="gb-sidebar-home-link is-active">Tous les concepts (76)</a>
+        <input type="search" id="gb-sidebar-filter" class="gb-sidebar-filter" placeholder="Filtrer le sommaire...">
+      </div>
+      <nav id="gb-sidebar-tree" class="gb-sidebar-tree"></nav>
+    </aside>
+
+    <main class="gb-home-main">
+      <header class="gb-home-intro">
+        <h1 class="gb-home-title">Bible Mathématique du Jeu Vidéo</h1>
+        <p class="gb-home-desc">
+          76 concepts mathématiques essentiels en Game &amp; Gameplay Programming, chacun avec sa page dédiée, son playground interactif et son code temps réel.
         </p>
-        <div class="mv-engine-strip">
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#e6edf3"></span>Unity C#</span>
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#478cbf"></span>Godot 4 (C# &amp; GDScript)</span>
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#a371f7"></span>Unreal C++</span>
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#3fb950"></span>Unreal Blueprint</span>
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#bc8cff"></span>C# .NET</span>
-          <span class="mv-engine-chip"><span class="mv-engine-dot" style="background:#f0883e"></span>C++ GLM / std</span>
+        <div class="gb-engines-line">
+          <span>Unity C#</span>
+          <span>Godot 4 (C# &amp; GDScript)</span>
+          <span>Unreal C++</span>
+          <span>Unreal Blueprint</span>
+          <span>C# .NET</span>
+          <span>C++ GLM</span>
+        </div>
+      </header>
+
+      <div class="gb-filter-bar">
+        <div class="gb-dim-tabs" id="gb-dim-tabs" role="tablist" aria-label="Filtrer par dimension"></div>
+        <div class="gb-filter-right">
+          <input type="search" id="gb-inline-filter" class="gb-inline-search" placeholder="Filtrer (Dot, Slerp, SAT, Perlin)...">
+          <select id="gb-tag-select" class="gb-select" aria-label="Besoin gameplay">
+            <option value="all">Tous les besoins</option>
+          </select>
         </div>
       </div>
 
-      <aside class="mv-dashboard-card" id="mv-dashboard-card" aria-label="Tableau de progression"></aside>
-    </section>
+      <div id="gb-sections" class="gb-sections"></div>
+    </main>
+  </div>
 
-    <!-- Curated Learning Paths -->
-    <section id="paths">
-      <div class="mv-section-head">
-        <div>
-          <h2 class="mv-section-title">Parcours Gameplay</h2>
-          <p class="mv-section-sub">Sélectionnez un parcours pour filtrer l'essentiel selon votre chantier du moment.</p>
-        </div>
-        <button type="button" id="mv-clear-path" class="mv-btn mv-btn-sm mv-btn-ghost" style="display:none">Afficher toute la bible</button>
-      </div>
-      <div class="mv-paths-grid" id="mv-paths-grid"></div>
-    </section>
-
-    <!-- Sticky Filter & Classification Shell -->
-    <section id="catalog">
-      <div class="mv-filter-shell">
-        <div class="mv-filter-row">
-          <div class="mv-segmented" id="mv-dim-segmented" role="tablist" aria-label="Filtrer par dimension"></div>
-
-          <div class="mv-filter-controls">
-            <div class="mv-search-inline">
-              <span id="mv-inline-search-icon"></span>
-              <input type="search" id="mv-inline-filter" class="mv-input" placeholder="Filtrer (ex: Slerp, SAT, Ray, Perlin)...">
-            </div>
-            <select id="mv-cat-select" class="mv-select" aria-label="Catégorie">
-              <option value="all">Toutes les catégories</option>
-            </select>
-            <select id="mv-diff-select" class="mv-select" aria-label="Niveau">
-              <option value="all">Tous niveaux</option>
-              <option value="1">Fondamental</option>
-              <option value="2">Intermédiaire</option>
-              <option value="3">Avancé</option>
-            </select>
-            <select id="mv-status-select" class="mv-select" aria-label="Statut">
-              <option value="all">Tous statuts</option>
-              <option value="pinned">Épinglés</option>
-              <option value="mastered">Assimilés</option>
-              <option value="todo">À explorer</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="mv-tags-row" id="mv-tags-row" aria-label="Filtrer par besoin gameplay"></div>
-      </div>
-
-      <div class="mv-catalog-body" id="mv-catalog-body" style="margin-top:26px"></div>
-    </section>
-  </main>
-
-  <footer class="mv-footer">
-    <div class="mv-footer-inner">
-      <div class="mv-footer-group">
+  <footer class="gb-footer">
+    <div class="gb-footer-inner">
+      <div class="gb-footer-group">
         <span>&copy; 2026 <strong>Alexy Houbloup</strong> (MisterIdle)</span>
-        <span class="mv-footer-sep"></span>
-        <span class="mv-version-tag" id="mv-version-tag"><!-- MV_VERSION -->v2.0.1 (25.11.2026)<!-- /MV_VERSION --></span>
+        <span class="gb-version-pill"><!-- MV_VERSION -->v3.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
       </div>
-      <div class="mv-footer-group">
+      <div class="gb-footer-group">
         <a href="https://github.com/MisterIdle/MathVizualizer" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://misteridle.itch.io/" target="_blank" rel="noopener noreferrer">Itch.io</a>
       </div>
     </div>
   </footer>
 
-  <script type="module" src="./js/homePage.js"></script>
+  <script type="module" src="./js/homePage.js?v=2.1"></script>
 </body>
 </html>

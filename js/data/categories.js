@@ -1,22 +1,22 @@
 export const DIMENSIONS = [
-  { id: "all", label: "Tout", short: "Tous" },
-  { id: "general", label: "Généraliste", short: "Généraliste" },
-  { id: "2d", label: "2D", short: "2D" },
-  { id: "3d", label: "3D", short: "3D" },
-  { id: "2d-3d", label: "2D & 3D", short: "2D & 3D" }
+  { id: "all", label: "Tous" },
+  { id: "general", label: "Généraliste" },
+  { id: "2d", label: "2D" },
+  { id: "3d", label: "3D" },
+  { id: "2d-3d", label: "2D & 3D" }
 ];
 
 export const DIMENSION_META = {
-  general: { label: "Généraliste", badgeClass: "mv-badge-dim-general" },
-  "2d": { label: "2D", badgeClass: "mv-badge-dim-2d" },
-  "3d": { label: "3D", badgeClass: "mv-badge-dim-3d" },
-  "2d-3d": { label: "2D & 3D", badgeClass: "mv-badge-dim-2d-3d" }
+  general: { label: "Généraliste", badgeClass: "gb-tag-general" },
+  "2d": { label: "2D", badgeClass: "gb-tag-2d" },
+  "3d": { label: "3D", badgeClass: "gb-tag-3d" },
+  "2d-3d": { label: "2D & 3D", badgeClass: "gb-tag-2d3d" }
 };
 
 export const DIFFICULTY_META = {
-  1: { label: "Fondamental", badgeClass: "mv-badge-diff-1" },
-  2: { label: "Intermédiaire", badgeClass: "mv-badge-diff-2" },
-  3: { label: "Avancé", badgeClass: "mv-badge-diff-3" }
+  1: { label: "Fondamental", badgeClass: "gb-tag-muted" },
+  2: { label: "Intermédiaire", badgeClass: "gb-tag-muted" },
+  3: { label: "Avancé", badgeClass: "gb-tag-muted" }
 };
 
 export const CATEGORIES = [
@@ -112,133 +112,4 @@ export const GAMEPLAY_TAGS = [
   "Shaders & Rendu",
   "Équilibrage & RPG",
   "Optimisation"
-];
-
-export const LEARNING_PATHS = [
-  {
-    id: "path-3c",
-    title: "Fondations 3C (Character, Camera, Controls)",
-    desc: "Le socle quotidien d'un Gameplay Programmer : déplacements propres, caméras fluides et sensations de contrôle.",
-    concepts: [
-      "direction", "normalized", "clamp", "hysteresis-deadzone",
-      "atan-vs-atan2", "project-projectonplane", "framerate-independent-damping",
-      "smoothdamp-spring", "spherical-cylindrical"
-    ]
-  },
-  {
-    id: "path-combat-ai",
-    title: "Combat, Détection & IA Gameplay",
-    desc: "Cônes de vision, détection gauche/droite, portées optimisées, balistique, anticipation de cible et Steering.",
-    concepts: [
-      "magnitude-sqrmagnitude", "dot-product", "determinant-2d", "deltaangle",
-      "ballistic-trajectory", "lead-target-interception", "steering-behaviors",
-      "boids-flocking", "ray-sphere"
-    ]
-  },
-  {
-    id: "path-3d-rot",
-    title: "Maîtrise 3D, Matrices & Quaternions",
-    desc: "Comprendre les repères moteurs, éviter le Gimbal Lock et manipuler les quaternions et matrices sans deviner.",
-    concepts: [
-      "coordinate-systems", "cross-product", "transform-local-world", "matrix-trs",
-      "euler-gimbal-lock", "quaternion-anatomy", "quaternion-lookrotation",
-      "quaternion-slerp-nlerp", "quaternion-multiply", "orthonormal-basis"
-    ]
-  },
-  {
-    id: "path-collisions",
-    title: "Moteur de Collisions & Physique Custom",
-    desc: "Écrire ses propres détections de collision, raycasts mathématiques, rebonds, IK et cordes Verlet.",
-    concepts: [
-      "aabb-collision", "circle-sphere-collision", "obb-sat",
-      "closest-point-segment-capsule", "ray-plane", "ray-aabb-slab",
-      "reflect-rebound", "euler-verlet-integration", "ik-alkashi-fabrik"
-    ]
-  },
-  {
-    id: "path-juice",
-    title: "Game Feel, Courbes & Cinématiques",
-    desc: "Polir un jeu avec des courbes d'easing, splines à vitesse constante, remapping et transitions organiques.",
-    concepts: [
-      "lerp", "inverselerp-remap", "smoothstep", "easing-curves",
-      "movetowards", "bezier-curves", "catmull-rom-spline", "arc-length-reparam"
-    ]
-  },
-  {
-    id: "path-proc",
-    title: "Génération Procédurale, Shaders & RPG",
-    desc: "Terrains fBm, biomes Voronoï, SDF, couleurs linéaires, bruit reproductible par seed et économie de jeu.",
-    concepts: [
-      "perlin-noise", "fbm-octaves", "voronoi-worley", "sdf-2d",
-      "color-spaces-kelvin", "gaussian-normal", "weighted-random-loot",
-      "prng-hash-seeds", "damage-xp-curves"
-    ]
-  }
-];
-
-export const RANKS = [
-  { level: 1, name: "Apprenti Vectoriel", minXp: 0 },
-  { level: 2, name: "Scripteur Gameplay", minXp: 150 },
-  { level: 3, name: "Développeur 2D/3D", minXp: 450 },
-  { level: 4, name: "Ingénieur 3C", minXp: 900 },
-  { level: 5, name: "Architecte Physique", minXp: 1500 },
-  { level: 6, name: "Maître Quaternions", minXp: 2300 },
-  { level: 7, name: "Architecte Moteur", minXp: 3200 }
-];
-
-export const MILESTONES = [
-  {
-    id: "first-steps",
-    title: "Premier Contact",
-    desc: "Explorer 5 playgrounds interactifs.",
-    check: (stats) => stats.exploredCount >= 5
-  },
-  {
-    id: "trig-master",
-    title: "Sniper Trigonométrique",
-    desc: "Assimiler tous les concepts de Trigonométrie.",
-    check: (stats) => stats.categoryRatio("trigonometry") === 1
-  },
-  {
-    id: "vector-master",
-    title: "Algébriste Terrain",
-    desc: "Assimiler tous les concepts de Vecteurs & Algèbre.",
-    check: (stats) => stats.categoryRatio("vectors") === 1
-  },
-  {
-    id: "zero-gimbal",
-    title: "Zéro Gimbal Lock",
-    desc: "Assimiler tous les concepts de Quaternions & 3D.",
-    check: (stats) => stats.categoryRatio("quaternions") === 1
-  },
-  {
-    id: "collision-architect",
-    title: "Architecte Collisions",
-    desc: "Assimiler tous les concepts de Collisions & Raycasting.",
-    check: (stats) => stats.categoryRatio("collisions") === 1
-  },
-  {
-    id: "game-feel-craft",
-    title: "Artisan du Game Feel",
-    desc: "Assimiler toutes les Interpolations & Ressorts.",
-    check: (stats) => stats.categoryRatio("interpolation") === 1
-  },
-  {
-    id: "proc-crafter",
-    title: "Forgeur Procédural",
-    desc: "Assimiler tous les concepts Procédural & Shaders.",
-    check: (stats) => stats.categoryRatio("procedural") === 1
-  },
-  {
-    id: "half-bible",
-    title: "Demi-Bible",
-    desc: "Assimiler au moins 50% de la Bible Mathématique.",
-    check: (stats) => stats.masteredCount >= Math.ceil(stats.totalCount * 0.5)
-  },
-  {
-    id: "full-bible",
-    title: "Bible Complète",
-    desc: "Assimiler 100% des concepts du catalogue.",
-    check: (stats) => stats.masteredCount >= stats.totalCount && stats.totalCount > 0
-  }
 ];

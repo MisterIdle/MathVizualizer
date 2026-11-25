@@ -3,6 +3,10 @@
 Toutes les évolutions notables de la Bible Mathématique sont documentées ici.
 Ce fichier est mis à jour automatiquement par `release.py`.
 
+## [3.0.0] - 25.11.2026
+### Refonte Majeure
+- Refonte visuelle style GitBook, suppression progression et fix cache modules
+
 ## [2.0.1] - 25.11.2026
 ### Corrections & Ajustements
 - global rework

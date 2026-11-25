@@ -1,5 +1,5 @@
-import { BaseSandbox } from "./BaseSandbox.js";
-import { MathEvaluator } from "../core/MathEvaluator.js";
+import { BaseSandbox } from "./BaseSandbox.js?v=2.1";
+import { MathEvaluator } from "../core/MathEvaluator.js?v=2.1";
 
 export class PhysicsCurvesSandbox extends BaseSandbox {
   constructor(canvas, concept, onStateChange, onInteract) {

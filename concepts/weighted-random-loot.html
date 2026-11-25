@@ -6,89 +6,79 @@
   <meta name="description" content="Tables de Loot Pondérées &amp; Fisher-Yates : Drop rates RPG (CDF), mélanges sans biais et anti-répétition — Playground interactif et code temps réel Unity, Godot, Unreal (C++ &amp; Blueprint), C# et C++.">
   <link rel="icon" href="../icon/pie.png" type="image/png">
   <title>Tables de Loot Pondérées &amp; Fisher-Yates — Math Vizualizer</title>
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../css/base.css">
-  <link rel="stylesheet" href="../css/concept.css">
+  <link rel="stylesheet" href="../css/tokens.css?v=3.0.0">
+  <link rel="stylesheet" href="../css/base.css?v=3.0.0">
+  <link rel="stylesheet" href="../css/concept.css?v=3.0.0">
 </head>
 <body data-concept-id="weighted-random-loot">
-  <header class="mv-header">
-    <div class="mv-header-inner">
-      <div class="mv-header-left">
-        <a href="../index.html" class="mv-brand">
-          <span class="mv-brand-mark">π</span>
-          <div class="mv-brand-info">
-            <span class="mv-brand-title">Math Vizualizer</span>
-            <span class="mv-brand-sub">Bible Game &amp; Gameplay Math</span>
-          </div>
-        </a>
-        <nav class="mv-header-nav" aria-label="Navigation principale">
-          <a href="../index.html" class="mv-nav-item">Tous les concepts</a>
-          <a href="../index.html#paths" class="mv-nav-item">Parcours</a>
-        </nav>
-      </div>
+  <header class="gb-header">
+    <div class="gb-header-inner">
+      <a href="../index.html" class="gb-brand">
+        <span class="gb-brand-logo">π</span>
+        <span class="gb-brand-name">Math Vizualizer</span>
+        <span class="gb-brand-meta">Game &amp; Gameplay Programming</span>
+      </a>
 
-      <div class="mv-header-right">
-        <button type="button" id="mv-search-trigger" class="mv-search-trigger" aria-label="Rechercher">
-          <span id="mv-search-icon-slot"></span>
-          <span>Rechercher un concept...</span>
-          <kbd class="mv-kbd">Ctrl K</kbd>
+      <div class="gb-header-actions">
+        <button type="button" id="gb-search-trigger" class="gb-search-btn" aria-label="Rechercher">
+          <span id="gb-search-icon"></span>
+          <span>Rechercher...</span>
+          <kbd class="gb-kbd">Ctrl K</kbd>
         </button>
-        <button type="button" id="mv-xp-pill" class="mv-xp-pill" title="Voir votre progression"></button>
-        <button type="button" id="mv-theme-toggle" class="mv-btn mv-btn-icon" aria-label="Changer de thème"></button>
+        <button type="button" id="gb-theme-toggle" class="gb-btn gb-btn-icon" aria-label="Changer de thème"></button>
       </div>
     </div>
   </header>
 
-  <div class="mv-doc-shell">
-    <aside class="mv-sidebar" aria-label="Catalogue des concepts">
-      <div class="mv-sidebar-top">
-        <a href="../index.html" class="mv-back-hub">← Retour à la Bible</a>
-        <input type="search" id="mv-sidebar-filter" class="mv-sidebar-input" placeholder="Filtrer le menu...">
+  <div class="gb-shell has-toc">
+    <aside class="gb-sidebar" aria-label="Sommaire de la bible">
+      <div class="gb-sidebar-head">
+        <a href="../index.html" class="gb-sidebar-home-link">← Tous les concepts (76)</a>
+        <input type="search" id="gb-sidebar-filter" class="gb-sidebar-filter" placeholder="Filtrer le sommaire...">
       </div>
-      <nav id="mv-sidebar-tree" class="mv-sidebar-tree"></nav>
+      <nav id="gb-sidebar-tree" class="gb-sidebar-tree"></nav>
     </aside>
 
-    <main class="mv-doc-main">
-      <article id="mv-article-root" class="mv-article">
+    <main class="gb-doc-main">
+      <article id="gb-article-root" class="gb-article">
         <noscript>
           <h1>Tables de Loot Pondérées &amp; Fisher-Yates</h1>
           <p>Drop rates RPG (CDF), mélanges sans biais et anti-répétition</p>
-          <p>Activez JavaScript pour utiliser le playground interactif et le générateur de code temps réel.</p>
+          <p>Activez JavaScript pour utiliser le playground interactif et le code temps réel.</p>
         </noscript>
       </article>
     </main>
 
-    <aside class="mv-toc" aria-label="Sommaire de l'article">
-      <div class="mv-toc-sticky">
-        <h2 class="mv-toc-title">Sur cette page</h2>
-        <ul class="mv-toc-list">
+    <aside class="gb-toc" aria-label="Sur cette page">
+      <div class="gb-toc-inner">
+        <div class="gb-toc-title">Sur cette page</div>
+        <ul class="gb-toc-list">
           <li><a href="#sec-def">Définition &amp; Formule</a></li>
           <li><a href="#sec-sandbox">Playground Interactif</a></li>
           <li><a href="#sec-code">Code Multi-Moteurs</a></li>
           <li><a href="#sec-live">Valeurs en Direct</a></li>
-          <li><a href="#sec-examples">Cas d'Usage Gameplay</a></li>
-          <li><a href="#sec-pitfalls">Pièges &amp; Pro Tips</a></li>
+          <li><a href="#sec-examples">Cas d'Usage</a></li>
+          <li><a href="#sec-pitfalls">Pièges Classiques</a></li>
           <li><a href="#sec-related">Concepts Liés</a></li>
         </ul>
       </div>
     </aside>
   </div>
 
-  <footer class="mv-footer">
-    <div class="mv-footer-inner">
-      <div class="mv-footer-group">
+  <footer class="gb-footer">
+    <div class="gb-footer-inner">
+      <div class="gb-footer-group">
         <span>&copy; 2026 <strong>Alexy Houbloup</strong> (MisterIdle)</span>
-        <span class="mv-footer-sep"></span>
-        <span class="mv-version-tag"><!-- MV_VERSION -->v2.0.1 (25.11.2026)<!-- /MV_VERSION --></span>
+        <span class="gb-version-pill"><!-- MV_VERSION -->v3.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
       </div>
-      <div class="mv-footer-group">
-        <a href="../index.html">Main Page</a>
+      <div class="gb-footer-group">
+        <a href="../index.html">Tous les concepts</a>
         <a href="https://github.com/MisterIdle/MathVizualizer" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://misteridle.itch.io/" target="_blank" rel="noopener noreferrer">Itch.io</a>
       </div>
     </div>
   </footer>
 
-  <script type="module" src="../js/conceptPage.js"></script>
+  <script type="module" src="../js/conceptPage.js?v=3.0.0"></script>
 </body>
 </html>

@@ -1,28 +1,25 @@
 /* ==========================================================================
-   Math Vizualizer — Design System Tokens
-   Inspired by Apple Human Interface Guidelines & GitHub Primer
-   Zero neon clutter. Engineered for hours of focused technical reading.
+   Math Vizualizer — GitBook-Inspired Documentation Design System
+   Clean, calm, immediately scannable at first glance.
    ========================================================================== */
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace,
-    SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", ui-monospace,
+    Menlo, Consolas, monospace;
 
+  --header-h: 58px;
+  --sidebar-w: 272px;
+  --toc-w: 224px;
   --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-pill: 9999px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-  --header-height: 56px;
-  --max-width: 1440px;
+  --ease: 150ms cubic-bezier(0.2, 0, 0, 1);
 
-  --transition-fast: 140ms cubic-bezier(0.2, 0, 0, 1);
-  --transition-med: 220ms cubic-bezier(0.2, 0, 0, 1);
-
-  /* Official Unreal Engine 5 Blueprint Pin Colors */
+  /* Unreal Engine 5 Blueprint Pin Colors */
   --ue-pin-exec: #ffffff;
   --ue-pin-bool: #920101;
   --ue-pin-int: #1ee3af;
@@ -35,140 +32,125 @@
   --ue-pin-struct: #3b82f6;
 }
 
-/* Dark Theme — GitHub Dark Default + Apple Pro Dark restraint */
+/* GitBook Dark Theme — Soft Slate, Zero Harsh Black */
 :root[data-theme="dark"],
 :root:not([data-theme]) {
   color-scheme: dark;
 
-  --bg-canvas: #0d1117;
-  --bg-surface: #161b22;
-  --bg-elevated: #1c2128;
-  --bg-inset: #090c10;
-  --bg-sandbox: #0b0f14;
-  --bg-header: rgba(13, 17, 23, 0.84);
-  --bg-hover: rgba(177, 186, 196, 0.08);
-  --bg-active: rgba(56, 139, 253, 0.14);
+  --bg-page: #111318;
+  --bg-sidebar: #14171e;
+  --bg-surface: #181c25;
+  --bg-elevated: #1e232f;
+  --bg-code: #0e1015;
+  --bg-sandbox: #0f1218;
+  --bg-header: rgba(17, 19, 24, 0.88);
+  --bg-hover: rgba(255, 255, 255, 0.045);
 
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-  --text-inverse: #ffffff;
+  --text-primary: #eef1f6;
+  --text-secondary: #9aa4b5;
+  --text-muted: #6c7688;
 
-  --border-default: #30363d;
-  --border-muted: #21262d;
-  --border-emphasis: #484f58;
+  --border-subtle: #1f2430;
+  --border-default: #272d3b;
+  --border-strong: #374054;
 
-  --accent-primary: #2f81f7;
-  --accent-fg: #58a6ff;
-  --accent-hover: #388bfd;
-  --accent-subtle: rgba(56, 139, 253, 0.14);
-  --accent-border: rgba(56, 139, 253, 0.4);
+  --accent: #4c8dff;
+  --accent-hover: #6ba1ff;
+  --accent-soft: rgba(76, 141, 255, 0.12);
+  --accent-border: rgba(76, 141, 255, 0.34);
 
-  --success-fg: #3fb950;
-  --success-bg: rgba(46, 160, 67, 0.14);
-  --success-border: rgba(63, 185, 80, 0.4);
+  /* GitBook Hint Callouts */
+  --hint-info-bg: rgba(76, 141, 255, 0.08);
+  --hint-info-border: #4c8dff;
+  --hint-tip-bg: rgba(52, 211, 153, 0.08);
+  --hint-tip-border: #34d399;
+  --hint-warn-bg: rgba(245, 158, 11, 0.09);
+  --hint-warn-border: #f59e0b;
 
-  --warning-fg: #d29922;
-  --warning-bg: rgba(187, 128, 9, 0.15);
-  --warning-border: rgba(210, 153, 34, 0.4);
+  /* Dimension Tags */
+  --tag-2d-fg: #34d399;
+  --tag-2d-bg: rgba(52, 211, 153, 0.1);
+  --tag-3d-fg: #60a5fa;
+  --tag-3d-bg: rgba(96, 165, 250, 0.12);
+  --tag-2d3d-fg: #c084fc;
+  --tag-2d3d-bg: rgba(192, 132, 252, 0.12);
+  --tag-gen-fg: #fbbf24;
+  --tag-gen-bg: rgba(251, 191, 36, 0.11);
 
-  --danger-fg: #f85149;
-  --danger-bg: rgba(248, 81, 73, 0.14);
-  --danger-border: rgba(248, 81, 73, 0.4);
+  /* Canvas Semantic Math Colors */
+  --math-x: #f87171;
+  --math-y: #34d399;
+  --math-z: #60a5fa;
+  --math-accent: #fbbf24;
+  --math-aux: #c084fc;
+  --math-grid: #1b202b;
+  --math-axis: #3a4356;
 
-  --purple-fg: #a371f7;
-  --purple-bg: rgba(163, 113, 247, 0.14);
-  --purple-border: rgba(163, 113, 247, 0.35);
-
-  /* Semantic Math & Coordinate Colors */
-  --math-x: #f85149;
-  --math-y: #3fb950;
-  --math-z: #58a6ff;
-  --math-accent: #e3b341;
-  --math-aux: #bc8cff;
-  --math-grid: #1b222c;
-  --math-axis: #3b4452;
-
-  /* Shadows — ultra-subtle, Apple/GitHub elevation */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.44);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.65);
-
-  /* Syntax highlighting tokens */
+  /* Syntax Highlighting */
   --syn-kw: #ff7b72;
   --syn-type: #79c0ff;
-  --syn-fn: #d2a8ff;
-  --syn-num: #79c0ff;
-  --syn-str: #a5d6ff;
-  --syn-comment: #8b949e;
-  --syn-op: #e6edf3;
+  --syn-num: #9ecbff;
+  --syn-cm: #7d8799;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-modal: 0 20px 56px rgba(0, 0, 0, 0.6);
 }
 
-/* Light Theme — Apple macOS + GitHub Light */
+/* GitBook Signature Light Theme */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-canvas: #ffffff;
-  --bg-surface: #f6f8fa;
+  --bg-page: #ffffff;
+  --bg-sidebar: #fbfcfd;
+  --bg-surface: #f8fafc;
   --bg-elevated: #ffffff;
-  --bg-inset: #f0f3f6;
+  --bg-code: #f6f8fa;
   --bg-sandbox: #fafbfc;
-  --bg-header: rgba(255, 255, 255, 0.85);
-  --bg-hover: rgba(208, 215, 222, 0.32);
-  --bg-active: rgba(9, 105, 218, 0.09);
+  --bg-header: rgba(255, 255, 255, 0.9);
+  --bg-hover: rgba(15, 23, 42, 0.04);
 
-  --text-primary: #1f2328;
-  --text-secondary: #59636e;
-  --text-muted: #6e7781;
-  --text-inverse: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 
-  --border-default: #d0d7de;
-  --border-muted: #e5e9ee;
-  --border-emphasis: #afb8c1;
+  --border-subtle: #edf0f4;
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
 
-  --accent-primary: #0969da;
-  --accent-fg: #0969da;
-  --accent-hover: #0550ae;
-  --accent-subtle: rgba(9, 105, 218, 0.09);
-  --accent-border: rgba(9, 105, 218, 0.3);
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --accent-border: rgba(37, 99, 235, 0.28);
 
-  --success-fg: #1a7f37;
-  --success-bg: rgba(26, 127, 55, 0.1);
-  --success-border: rgba(26, 127, 55, 0.35);
+  --hint-info-bg: #eff6ff;
+  --hint-info-border: #3b82f6;
+  --hint-tip-bg: #ecfdf5;
+  --hint-tip-border: #10b981;
+  --hint-warn-bg: #fffbeb;
+  --hint-warn-border: #f59e0b;
 
-  --warning-fg: #9a6700;
-  --warning-bg: rgba(154, 103, 0, 0.1);
-  --warning-border: rgba(154, 103, 0, 0.35);
+  --tag-2d-fg: #059669;
+  --tag-2d-bg: #ecfdf5;
+  --tag-3d-fg: #2563eb;
+  --tag-3d-bg: #eff6ff;
+  --tag-2d3d-fg: #7c3aed;
+  --tag-2d3d-bg: #f5f3ff;
+  --tag-gen-fg: #b45309;
+  --tag-gen-bg: #fffbeb;
 
-  --danger-fg: #cf222e;
-  --danger-bg: rgba(207, 34, 46, 0.09);
-  --danger-border: rgba(207, 34, 46, 0.35);
+  --math-x: #dc2626;
+  --math-y: #059669;
+  --math-z: #2563eb;
+  --math-accent: #d97706;
+  --math-aux: #7c3aed;
+  --math-grid: #eef2f6;
+  --math-axis: #94a3b8;
 
-  --purple-fg: #8250df;
-  --purple-bg: rgba(130, 80, 223, 0.09);
-  --purple-border: rgba(130, 80, 223, 0.32);
-
-  /* Semantic Math & Coordinate Colors */
-  --math-x: #cf222e;
-  --math-y: #1a7f37;
-  --math-z: #0969da;
-  --math-accent: #b35900;
-  --math-aux: #8250df;
-  --math-grid: #eaeef2;
-  --math-axis: #aeb7c2;
-
-  --shadow-xs: 0 1px 2px rgba(31, 35, 40, 0.04);
-  --shadow-sm: 0 1px 3px rgba(31, 35, 40, 0.08), 0 1px 2px rgba(31, 35, 40, 0.04);
-  --shadow-md: 0 8px 24px rgba(31, 35, 40, 0.12);
-  --shadow-modal: 0 20px 56px rgba(31, 35, 40, 0.22);
-
-  /* Syntax highlighting tokens */
   --syn-kw: #cf222e;
   --syn-type: #0550ae;
-  --syn-fn: #8250df;
   --syn-num: #0550ae;
-  --syn-str: #0a3069;
-  --syn-comment: #6e7781;
-  --syn-op: #1f2328;
+  --syn-cm: #6b7280;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-modal: 0 20px 56px rgba(15, 23, 42, 0.16);
 }

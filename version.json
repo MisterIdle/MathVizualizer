@@ -1,8 +1,14 @@
 {
-  "version": "2.0.1",
+  "version": "3.0.0",
   "date": "25.11.2026",
   "conceptsCount": 76,
   "history": [
+    {
+      "version": "3.0.0",
+      "date": "25.11.2026",
+      "type": "major",
+      "summary": "Refonte visuelle style GitBook, suppression progression et fix cache modules"
+    },
     {
       "version": "2.0.1",
       "date": "25.11.2026",

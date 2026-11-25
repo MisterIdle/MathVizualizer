@@ -4,25 +4,25 @@ import { ICONS } from "./Icons.js";
 export class CommandPalette {
   static init(triggerBtn, conceptUrlPrefix = "./concepts/") {
     const backdrop = document.createElement("div");
-    backdrop.className = "mv-palette-backdrop";
+    backdrop.className = "gb-palette-backdrop";
     backdrop.innerHTML = `
-      <div class="mv-palette" role="dialog" aria-modal="true" aria-label="Recherche rapide">
-        <div class="mv-palette-header">
+      <div class="gb-palette" role="dialog" aria-modal="true" aria-label="Recherche rapide">
+        <div class="gb-palette-head">
           ${ICONS.search}
-          <input type="text" class="mv-palette-input" id="mv-palette-input" placeholder="Rechercher un concept, une fonction (Dot, Slerp, SAT, Perlin, 3D, Unreal)...">
-          <span class="mv-kbd">ESC</span>
+          <input type="text" class="gb-palette-input" id="gb-palette-input" placeholder="Rechercher un concept (Dot, Slerp, SAT, Perlin, 3D, Unreal)...">
+          <span class="gb-kbd">ESC</span>
         </div>
-        <div class="mv-palette-results" id="mv-palette-results"></div>
-        <div class="mv-palette-footer">
+        <div class="gb-palette-results" id="gb-palette-results"></div>
+        <div class="gb-palette-foot">
           <span>↑↓ Naviguer · ↵ Ouvrir</span>
-          <span>${MATH_CATALOG.length} concepts disponibles</span>
+          <span>${MATH_CATALOG.length} concepts</span>
         </div>
       </div>
     `;
     document.body.appendChild(backdrop);
 
-    const input = backdrop.querySelector("#mv-palette-input");
-    const resultsEl = backdrop.querySelector("#mv-palette-results");
+    const input = backdrop.querySelector("#gb-palette-input");
+    const resultsEl = backdrop.querySelector("#gb-palette-results");
     let selectedIndex = 0;
     let currentMatches = [];
 
@@ -33,9 +33,7 @@ export class CommandPalette {
       setTimeout(() => input.focus(), 10);
     };
 
-    const close = () => {
-      backdrop.classList.remove("is-open");
-    };
+    const close = () => backdrop.classList.remove("is-open");
 
     const renderList = (query) => {
       const q = query.trim().toLowerCase();
@@ -47,22 +45,19 @@ export class CommandPalette {
 
       selectedIndex = 0;
       if (currentMatches.length === 0) {
-        resultsEl.innerHTML = `<div class="mv-palette-empty">Aucun concept ne correspond à « ${query} ».</div>`;
+        resultsEl.innerHTML = `<div style="padding:28px;text-align:center;color:var(--text-muted);font-size:13.5px">Aucun résultat pour « ${query} ».</div>`;
         return;
       }
 
       resultsEl.innerHTML = currentMatches
         .map(
           (c, i) => `
-          <a href="${conceptUrlPrefix}${c.id}.html" class="mv-palette-item ${i === 0 ? "is-selected" : ""}" data-idx="${i}">
-            <div class="mv-palette-item-left">
-              <span class="mv-palette-glyph">${c.glyph}</span>
-              <div class="mv-palette-text">
-                <span class="mv-palette-title">${c.name}</span>
-                <span class="mv-palette-sub">${c.categoryShort} · ${c.subtitle}</span>
-              </div>
+          <a href="${conceptUrlPrefix}${c.id}.html" class="gb-palette-item ${i === 0 ? "is-selected" : ""}">
+            <div>
+              <div class="gb-palette-title">${c.name}</div>
+              <div class="gb-palette-sub">${c.categoryShort} · ${c.subtitle}</div>
             </div>
-            <span class="mv-badge ${c.dimensionMeta.badgeClass}">${c.dimensionMeta.label}</span>
+            <span class="gb-tag ${c.dimensionMeta.badgeClass}">${c.dimensionMeta.label}</span>
           </a>
         `
         )
@@ -70,7 +65,7 @@ export class CommandPalette {
     };
 
     const updateSelection = () => {
-      const items = resultsEl.querySelectorAll(".mv-palette-item");
+      const items = resultsEl.querySelectorAll(".gb-palette-item");
       items.forEach((el, i) => el.classList.toggle("is-selected", i === selectedIndex));
       items[selectedIndex]?.scrollIntoView({ block: "nearest" });
     };
