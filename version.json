@@ -1,0 +1,25 @@
+{
+  "version": "2.0.1",
+  "date": "25.11.2026",
+  "conceptsCount": 76,
+  "history": [
+    {
+      "version": "2.0.1",
+      "date": "25.11.2026",
+      "type": "patch",
+      "summary": "global rework"
+    },
+    {
+      "version": "2.0.0",
+      "date": "25.11.2026",
+      "type": "major",
+      "summary": "Refonte complète Apple/GitHub, 76 concepts Game & Gameplay Programming (2D/3D/Généraliste), 1 page statique par concept, rendu Blueprint Unreal visuel, progression & script release.py."
+    },
+    {
+      "version": "1.1.0",
+      "date": "26.10.2026",
+      "type": "minor",
+      "summary": "Version initiale SPA avec playgrounds 2D/3D de base."
+    }
+  ]
+}

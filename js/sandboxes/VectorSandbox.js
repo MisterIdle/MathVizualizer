@@ -1,31 +1,34 @@
 import { BaseSandbox } from "./BaseSandbox.js";
+import { MathEvaluator } from "../core/MathEvaluator.js";
 
 export class VectorSandbox extends BaseSandbox {
-  constructor(canvas, funcItem, onStateChange) {
-    super(canvas, funcItem, onStateChange);
-    this.mode = funcItem.sandbox;
-    this.id = funcItem.id;
-    this.vecA = { x: 1.8, y: 1.4, z: 0.0 };
-    this.vecB = { x: -1.0, y: 2.2, z: 0.0 };
-    this.vecC = { x: -1.8, y: -0.8, z: 0.0 };
-    this.weightA = 1.0;
-    this.weightB = 1.0;
-    this.weightC = 1.0;
-    this.gravity = 9.81;
-    this.rangeLimit = 2.5;
-
-    this.normalizeVectors =
-      (this.mode === "dot" || this.mode === "cross" || this.mode === "project") &&
-      this.id !== "direction" &&
-      this.id !== "magnitude" &&
-      this.id !== "reflect" &&
-      this.id !== "projectonplane" &&
-      this.id !== "rayplane";
+  constructor(canvas, concept, onStateChange, onInteract) {
+    super(canvas, concept, onStateChange, onInteract);
+    this.vecA = { x: 1.9, y: 1.3, z: 0 };
+    this.vecB = { x: -1.1, y: 2.1, z: 0 };
+    this.vecC = { x: -2.2, y: -1.1, z: 0 };
+    this.rangeLimit = 2.6;
+    this.distanceMetric = 0; // 0: Euclidean, 1: Manhattan, 2: Chebyshev
+    this.projectPlaneMode = true; // true: ProjectOnPlane, false: Project onto B
+    this.restitution = 0.85;
+    this.friction = 0.1;
+    this.innerDeadzone = 0.28;
+    this.outerDeadzone = 0.95;
+    this.rawStick = { x: 0.45, y: 0.35 };
+    this.trs = { tx: 0.8, ty: 0.4, rot: 30, sx: 1.3, sy: 0.9 };
+    this.normalizeVectors = this.mode === "dot";
     this.draggingTarget = null;
 
-    if (this.id === "reflect") {
-      this.vecA = { x: 0.0, y: 2.0, z: 0.0 };
-      this.vecB = { x: -2.2, y: 1.8, z: 0.0 };
+    if (this.mode === "reflect") {
+      this.vecA = { x: 0.2, y: 1.9, z: 0 }; // normal
+      this.vecB = { x: -2.2, y: 1.7, z: 0 }; // laser source
+    } else if (this.mode === "projectonplane") {
+      this.vecA = { x: 2.0, y: -1.3, z: 0 };
+      this.vecB = { x: -0.5, y: 1.6, z: 0 };
+    } else if (this.mode === "rayplane") {
+      this.vecC = { x: -2.4, y: 1.5, z: 0 }; // origin
+      this.vecA = { x: 1.8, y: -1.0, z: 0 }; // dir
+      this.vecB = { x: -0.35, y: 1.2, z: 0 }; // plane normal
     }
 
     this.bindEvents();
@@ -33,92 +36,124 @@ export class VectorSandbox extends BaseSandbox {
   }
 
   getControlsConfig() {
-    if (this.mode === "barycentre") {
+    if (this.mode === "magnitude") {
       return [
-        { type: "range", key: "wa", label: "Masse α (Point A)", min: 0.1, max: 5, step: 0.1, value: this.weightA, onChange: (v) => { this.weightA = v; this.updateStateAndRender(); } },
-        { type: "range", key: "wb", label: "Masse β (Point B)", min: 0.1, max: 5, step: 0.1, value: this.weightB, onChange: (v) => { this.weightB = v; this.updateStateAndRender(); } },
-        { type: "range", key: "wc", label: "Masse γ (Point C)", min: 0.1, max: 5, step: 0.1, value: this.weightC, onChange: (v) => { this.weightC = v; this.updateStateAndRender(); } }
+        {
+          type: "range",
+          key: "range",
+          label: "Portée Radar",
+          min: 1.0,
+          max: 4.5,
+          step: 0.1,
+          value: this.rangeLimit,
+          onChange: (v) => { this.rangeLimit = v; this.notifyInteract(); this.updateStateAndRender(); }
+        },
+        {
+          type: "button",
+          label: "Métrique : Euclidienne",
+          onClick: (btn) => {
+            this.distanceMetric = (this.distanceMetric + 1) % 3;
+            const names = ["Euclidienne (Cercle)", "Manhattan L₁ (Losange)", "Chebyshev L∞ (Carré)"];
+            if (btn) btn.textContent = `Métrique : ${names[this.distanceMetric]}`;
+            this.notifyInteract();
+            this.updateStateAndRender();
+          }
+        }
       ];
     }
-    if (this.mode === "ballistic") {
+    if (this.mode === "dot") {
       return [
-        { type: "range", key: "g", label: "Gravité g (m/s²)", min: 1.6, max: 20, step: 0.2, value: this.gravity, onChange: (v) => { this.gravity = v; this.updateStateAndRender(); } }
+        {
+          type: "button",
+          label: this.normalizeVectors ? "Normaliser A & B : Activé" : "Normaliser A & B : Désactivé",
+          onClick: (btn) => {
+            this.normalizeVectors = !this.normalizeVectors;
+            if (btn) btn.textContent = this.normalizeVectors ? "Normaliser A & B : Activé" : "Normaliser A & B : Désactivé";
+            this.notifyInteract();
+            this.updateStateAndRender();
+          }
+        }
       ];
     }
-    if (this.id === "magnitude") {
+    if (this.mode === "projectonplane") {
       return [
-        { type: "range", key: "range", label: "Portée du Radar", min: 1.0, max: 4.5, step: 0.1, value: this.rangeLimit, onChange: (v) => { this.rangeLimit = v; this.updateStateAndRender(); } }
+        {
+          type: "button",
+          label: "Mode : ProjectOnPlane (Pente)",
+          onClick: (btn) => {
+            this.projectPlaneMode = !this.projectPlaneMode;
+            if (btn) btn.textContent = this.projectPlaneMode ? "Mode : ProjectOnPlane (Pente)" : "Mode : Project sur Axe (Rail)";
+            this.notifyInteract();
+            this.updateStateAndRender();
+          }
+        }
       ];
     }
-    if ((this.mode === "dot" || this.mode === "cross" || this.mode === "project") && this.id !== "direction" && this.id !== "magnitude" && this.id !== "reflect" && this.id !== "projectonplane" && this.id !== "rayplane") {
+    if (this.mode === "reflect") {
       return [
-        { type: "button", label: "Normaliser A & B (Longueur = 1) : On/Off", onClick: () => { this.normalizeVectors = !this.normalizeVectors; this.updateStateAndRender(); } }
+        {
+          type: "range",
+          key: "e",
+          label: "Restitution (e)",
+          min: 0.0,
+          max: 1.0,
+          step: 0.05,
+          value: this.restitution,
+          onChange: (v) => { this.restitution = v; this.notifyInteract(); this.updateStateAndRender(); }
+        },
+        {
+          type: "range",
+          key: "mu",
+          label: "Friction (μ)",
+          min: 0.0,
+          max: 0.8,
+          step: 0.05,
+          value: this.friction,
+          onChange: (v) => { this.friction = v; this.notifyInteract(); this.updateStateAndRender(); }
+        }
+      ];
+    }
+    if (this.mode === "deadzone") {
+      return [
+        {
+          type: "range",
+          key: "inner",
+          label: "Deadzone interne",
+          min: 0.05,
+          max: 0.6,
+          step: 0.05,
+          value: this.innerDeadzone,
+          onChange: (v) => { this.innerDeadzone = v; this.notifyInteract(); this.updateStateAndRender(); }
+        },
+        {
+          type: "range",
+          key: "outer",
+          label: "Plafond externe",
+          min: 0.7,
+          max: 1.0,
+          step: 0.05,
+          value: this.outerDeadzone,
+          onChange: (v) => { this.outerDeadzone = v; this.notifyInteract(); this.updateStateAndRender(); }
+        }
+      ];
+    }
+    if (this.mode === "matrixtrs") {
+      return [
+        { type: "range", key: "tx", label: "Tx", min: -2.5, max: 2.5, step: 0.1, value: this.trs.tx, onChange: (v) => { this.trs.tx = v; this.notifyInteract(); this.updateStateAndRender(); } },
+        { type: "range", key: "ty", label: "Ty", min: -1.8, max: 1.8, step: 0.1, value: this.trs.ty, onChange: (v) => { this.trs.ty = v; this.notifyInteract(); this.updateStateAndRender(); } },
+        { type: "range", key: "rot", label: "Rotation (°)", min: -180, max: 180, step: 5, value: this.trs.rot, onChange: (v) => { this.trs.rot = v; this.notifyInteract(); this.updateStateAndRender(); } },
+        { type: "range", key: "sx", label: "Scale X", min: 0.3, max: 2.2, step: 0.1, value: this.trs.sx, onChange: (v) => { this.trs.sx = v; this.notifyInteract(); this.updateStateAndRender(); } },
+        { type: "range", key: "sy", label: "Scale Y", min: 0.3, max: 2.2, step: 0.1, value: this.trs.sy, onChange: (v) => { this.trs.sy = v; this.notifyInteract(); this.updateStateAndRender(); } }
       ];
     }
     return [];
   }
-  
-  bindEvents() {
-    const onDown = (e) => {
-      const pos = this.getMousePos(e);
-      const { cx, cy, scale } = this.getGeometry();
-
-      let hitA = this.currentA || this.vecA;
-      let hitB = this.currentB || this.vecB;
-      let hitC = this.vecC;
-
-      if (this.id === "rayplane") {
-        hitA = { x: hitC.x + hitA.x, y: hitC.y + hitA.y };
-        hitB = this.normalize(hitB);
-      } else if (this.id === "projectonplane") {
-        hitB = this.normalize(hitB);
-      } else if (this.id === "reflect") {
-        hitA = this.normalize(hitA);
-      }
-
-      const aScr = this.project(hitA, cx, cy, scale);
-      const bScr = this.project(hitB, cx, cy, scale);
-      const cScr = this.project(hitC, cx, cy, scale);
-
-      if (Math.hypot(pos.x - aScr.x, pos.y - aScr.y) < 28) this.draggingTarget = "A";
-      else if (Math.hypot(pos.x - bScr.x, pos.y - bScr.y) < 28) this.draggingTarget = "B";
-      else if (Math.hypot(pos.x - cScr.x, pos.y - cScr.y) < 28) this.draggingTarget = "C";
-    };
-
-    const onMove = (e) => {
-      if (!this.draggingTarget) return;
-      const pos = this.getMousePos(e);
-      const { cx, cy, scale } = this.getGeometry();
-      const vx = Math.max(-4.2, Math.min(4.2, (pos.x - cx) / scale));
-      const vy = Math.max(-3.2, Math.min(3.2, (cy - pos.y) / scale));
-
-      if (this.draggingTarget === "A") {
-        if (this.id === "rayplane") {
-          this.vecA.x = vx - this.vecC.x;
-          this.vecA.y = vy - this.vecC.y;
-        } else {
-          this.vecA.x = vx;
-          this.vecA.y = vy;
-        }
-      }
-      else if (this.draggingTarget === "B") { this.vecB.x = vx; this.vecB.y = vy; }
-      else if (this.draggingTarget === "C") { this.vecC.x = vx; this.vecC.y = vy; }
-      
-      this.updateStateAndRender();
-    };
-    
-    const onUp = () => { this.draggingTarget = null; };
-
-    this.canvas.addEventListener("mousedown", onDown);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }
 
   getGeometry() {
     return {
-      cx: this.mode === "ballistic" ? this.width * 0.14 : this.width / 2,
-      cy: this.mode === "ballistic" ? this.height * 0.82 : this.height / 2,
-      scale: Math.min(this.width, this.height) * 0.13
+      cx: this.width / 2,
+      cy: this.height * 0.48,
+      scale: Math.min(this.width, this.height) * (this.mode === "deadzone" ? 0.33 : 0.13)
     };
   }
 
@@ -127,412 +162,352 @@ export class VectorSandbox extends BaseSandbox {
   }
 
   normalize(v) {
-    const len = Math.hypot(v.x, v.y, v.z) || 1;
-    return { x: v.x / len, y: v.y / len, z: v.z / len };
+    const len = Math.hypot(v.x, v.y, v.z || 0) || 1;
+    return { x: v.x / len, y: v.y / len, z: (v.z || 0) / len };
+  }
+
+  bindEvents() {
+    this.bindPointer(
+      (pos) => {
+        const { cx, cy, scale } = this.getGeometry();
+        if (this.mode === "deadzone") {
+          this.draggingTarget = "STICK";
+          this.updateStick(pos);
+          return;
+        }
+        if (this.mode === "matrixtrs") {
+          this.draggingTarget = "TRS";
+          this.trs.tx = MathEvaluator.clamp((pos.x - cx) / scale, -2.5, 2.5);
+          this.trs.ty = MathEvaluator.clamp((cy - pos.y) / scale, -1.8, 1.8);
+          this.updateStateAndRender();
+          return;
+        }
+        let hitA = this.currentA || this.vecA;
+        let hitB = this.currentB || this.vecB;
+        let hitC = this.vecC;
+
+        if (this.mode === "rayplane") {
+          hitA = { x: hitC.x + this.vecA.x, y: hitC.y + this.vecA.y };
+          hitB = this.normalize(this.vecB);
+        } else if (this.mode === "projectonplane" && this.projectPlaneMode) {
+          hitB = this.normalize(this.vecB);
+        } else if (this.mode === "reflect") {
+          hitA = this.normalize(this.vecA);
+        }
+
+        const aScr = this.project(hitA, cx, cy, scale);
+        const bScr = this.project(hitB, cx, cy, scale);
+        const cScr = this.project(hitC, cx, cy, scale);
+
+        if (Math.hypot(pos.x - aScr.x, pos.y - aScr.y) < 30) this.draggingTarget = "A";
+        else if (Math.hypot(pos.x - bScr.x, pos.y - bScr.y) < 30) this.draggingTarget = "B";
+        else if (this.mode === "rayplane" && Math.hypot(pos.x - cScr.x, pos.y - cScr.y) < 30) this.draggingTarget = "C";
+      },
+      (pos) => {
+        if (!this.draggingTarget) return;
+        const { cx, cy, scale } = this.getGeometry();
+        if (this.draggingTarget === "STICK") {
+          this.updateStick(pos);
+          return;
+        }
+        if (this.draggingTarget === "TRS") {
+          this.trs.tx = MathEvaluator.clamp((pos.x - cx) / scale, -2.5, 2.5);
+          this.trs.ty = MathEvaluator.clamp((cy - pos.y) / scale, -1.8, 1.8);
+          this.updateStateAndRender();
+          return;
+        }
+        const vx = MathEvaluator.clamp((pos.x - cx) / scale, -4.4, 4.4);
+        const vy = MathEvaluator.clamp((cy - pos.y) / scale, -3.1, 3.1);
+
+        if (this.draggingTarget === "A") {
+          if (this.mode === "rayplane") {
+            this.vecA.x = vx - this.vecC.x;
+            this.vecA.y = vy - this.vecC.y;
+          } else {
+            this.vecA.x = vx;
+            this.vecA.y = vy;
+          }
+        } else if (this.draggingTarget === "B") {
+          this.vecB.x = vx;
+          this.vecB.y = vy;
+        } else if (this.draggingTarget === "C") {
+          this.vecC.x = vx;
+          this.vecC.y = vy;
+        }
+        this.updateStateAndRender();
+      },
+      () => {
+        this.draggingTarget = null;
+      }
+    );
+  }
+
+  updateStick(pos) {
+    const { cx, cy, scale } = this.getGeometry();
+    let dx = (pos.x - cx) / scale;
+    let dy = (cy - pos.y) / scale;
+    const mag = Math.hypot(dx, dy);
+    if (mag > 1) {
+      dx /= mag;
+      dy /= mag;
+    }
+    this.rawStick = { x: dx, y: dy };
+    this.updateStateAndRender();
   }
 
   updateStateAndRender() {
-    if (!this.vecA || !this.vecB) return;
     const a = this.normalizeVectors ? this.normalize(this.vecA) : { ...this.vecA };
     const b = this.normalizeVectors ? this.normalize(this.vecB) : { ...this.vecB };
-
-    const dot = a.x * b.x + a.y * b.y + a.z * b.z;
-    const det2D = a.x * b.y - a.y * b.x;
-    const cross = { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: det2D };
+    const dot = a.x * b.x + a.y * b.y;
+    const det = a.x * b.y - a.y * b.x;
 
     this.currentA = a;
     this.currentB = b;
     this.currentDot = dot;
-    this.currentDet = det2D;
-    this.currentCross = cross;
+    this.currentDet = det;
+
+    // Deadzone computation
+    const rawMag = Math.hypot(this.rawStick.x, this.rawStick.y);
+    let scaledStick = { x: 0, y: 0, mag: 0 };
+    if (rawMag > this.innerDeadzone) {
+      const m = MathEvaluator.clamp01((rawMag - this.innerDeadzone) / Math.max(0.05, this.outerDeadzone - this.innerDeadzone));
+      scaledStick = { x: (this.rawStick.x / rawMag) * m, y: (this.rawStick.y / rawMag) * m, mag: m };
+    }
+    this.scaledStick = scaledStick;
 
     this.render();
-    this.emitState({ vecA: a, vecB: b, vecC: this.vecC, dot, det: det2D, cross });
-  }
-
-  drawArrow(ctx, x1, y1, x2, y2, color, label, isDashed = false) {
-    const headLen = 11;
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    ctx.save();
-    if (isDashed) ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3.5;
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    if (label) {
-      ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText(label, x2 + 12, y2 - 6);
-    }
-  }
-
-  drawPointWithLabel(ctx, x, y, color, label) {
-    ctx.beginPath();
-    ctx.arc(x, y, 9, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    if (label) {
-      ctx.fillStyle = color;
-      ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText(label, x + 14, y + 4);
-    }
-  }
-
-  drawPointWithLabelCustom(ctx, x, y, color, label, offsetX = 14, offsetY = 4) {
-    ctx.beginPath();
-    ctx.arc(x, y, 9, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    if (label) {
-      ctx.fillStyle = color;
-      ctx.font = "700 13px Segoe UI, sans-serif";
-      ctx.fillText(label, x + offsetX, y + offsetY);
-    }
+    this.emitState({
+      mode: this.mode,
+      vecA: a,
+      vecB: b,
+      vecC: this.vecC,
+      dot,
+      det,
+      rangeLimit: this.rangeLimit,
+      restitution: this.restitution,
+      friction: this.friction,
+      rawStick: this.rawStick,
+      scaledStick,
+      innerDeadzone: this.innerDeadzone,
+      trs: this.trs
+    });
   }
 
   render() {
-    if (!this.ctx || !this.currentA) return;
+    if (!this.ctx) return;
     const ctx = this.ctx;
     const colors = this.getThemeColors();
     const { cx, cy, scale } = this.getGeometry();
-
     ctx.clearRect(0, 0, this.width, this.height);
 
-    ctx.strokeStyle = colors.grid;
-    ctx.lineWidth = 1;
-    for (let i = -10; i <= 10; i++) {
-      ctx.beginPath();
-      ctx.moveTo(cx + i * scale, 0);
-      ctx.lineTo(cx + i * scale, this.height);
-      ctx.moveTo(0, cy + i * scale);
-      ctx.lineTo(this.width, cy + i * scale);
-      ctx.stroke();
-    }
-    ctx.strokeStyle = colors.axis;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, cy);
-    ctx.lineTo(this.width, cy);
-    ctx.moveTo(cx, 0);
-    ctx.lineTo(cx, this.height);
-    ctx.stroke();
+    if (this.mode === "deadzone") return this.renderDeadzone(ctx, cx, cy, scale, colors);
+    if (this.mode === "matrixtrs") return this.renderMatrixTrs(ctx, cx, cy, scale, colors);
+
+    this.drawGrid(ctx, cx, cy, scale, colors, true);
 
     const pA = this.project(this.currentA, cx, cy, scale);
     const pB = this.project(this.currentB, cx, cy, scale);
-    const pC = this.project(this.vecC, cx, cy, scale);
 
-    if (this.id === "direction") {
-      const dirX = this.currentB.x - this.currentA.x;
-      const dirY = this.currentB.y - this.currentA.y;
-
-      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, "#fcc419", "");
-
-      const midX = (pA.x + pB.x) / 2;
-      const midY = (pA.y + pB.y) / 2;
-      ctx.fillStyle = "#fcc419";
-      ctx.font = "700 13px Consolas, monospace";
-      ctx.fillText(`Direction (${dirX.toFixed(2)}, ${dirY.toFixed(2)})`, midX + 10, midY - 12);
-
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Joueur Pos");
-      this.drawPointWithLabelCustom(ctx, pB.x, pB.y, colors.colorZ, "Cible Target", 14, 22);
-
-      ctx.fillStyle = "#fcc419";
-      ctx.font = "700 14px Segoe UI, sans-serif";
-      ctx.fillText(`Formule : Vector3 dir = Target - Pos = (${dirX.toFixed(2)}, ${dirY.toFixed(2)})`, 18, this.height - 16);
+    if (this.mode === "direction") {
+      const dx = this.currentB.x - this.currentA.x;
+      const dy = this.currentB.y - this.currentA.y;
+      const len = Math.hypot(dx, dy);
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, colors.accent, 3);
+      this.drawHandle(ctx, pA.x, pA.y, colors.x, `Origine A (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`, colors);
+      this.drawHandle(ctx, pB.x, pB.y, colors.z, `Cible B (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`, colors, 13, 16);
+      this.drawStatusBanner(ctx, `Dir = B - A = (${dx.toFixed(2)}, ${dy.toFixed(2)}) | Longueur = ${len.toFixed(2)}m`, colors.accent, colors);
       return;
     }
 
-    if (this.id === "magnitude") {
-      const dist = Math.hypot(this.currentB.x - this.currentA.x, this.currentB.y - this.currentA.y);
-      const isInside = dist <= this.rangeLimit;
+    if (this.mode === "magnitude") {
+      const dx = Math.abs(this.currentB.x - this.currentA.x);
+      const dy = Math.abs(this.currentB.y - this.currentA.y);
+      const dist = this.distanceMetric === 0 ? Math.hypot(dx, dy) : this.distanceMetric === 1 ? dx + dy : Math.max(dx, dy);
+      const inside = dist <= this.rangeLimit;
+      const col = inside ? colors.x : colors.y;
 
-      ctx.beginPath();
-      ctx.arc(pA.x, pA.y, this.rangeLimit * scale, 0, Math.PI * 2);
-      ctx.fillStyle = isInside ? "rgba(255, 107, 107, 0.16)" : "rgba(81, 207, 102, 0.1)";
-      ctx.fill();
-      ctx.strokeStyle = isInside ? "#ff6b6b" : "#51cf66";
+      ctx.save();
+      ctx.fillStyle = col + "1c";
+      ctx.strokeStyle = col;
       ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, isInside ? "#ff6b6b" : "#51cf66", "");
-      
-      const midX = (pA.x + pB.x) / 2;
-      const midY = (pA.y + pB.y) / 2;
-      ctx.fillStyle = isInside ? "#ff6b6b" : "#51cf66";
-      ctx.font = "700 13px Consolas, monospace";
-      ctx.fillText(`${dist.toFixed(2)}m`, midX - 15, midY - 12);
-
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Joueur (Centre Radar)");
-      this.drawPointWithLabelCustom(ctx, pB.x, pB.y, colors.colorZ, "Ennemi", 14, 22);
-
-      ctx.fillStyle = isInside ? "#ff6b6b" : "#51cf66";
-      ctx.font = "700 14px Segoe UI, sans-serif";
-      ctx.fillText(
-        isInside
-          ? `🚨 ENNEMI À PORTÉE ! Distance = ${dist.toFixed(2)}m ≤ ${this.rangeLimit}m (sqrMagnitude = ${(dist * dist).toFixed(2)})`
-          : `✓ Hors de portée : Distance = ${dist.toFixed(2)}m > ${this.rangeLimit}m`,
-        18,
-        this.height - 16
-      );
-      return;
-    }
-
-    if (this.id === "reflect") {
-      const normA = this.normalize(this.currentA);
-      const tangentX = -normA.y;
-      const tangentY = normA.x;
-
-      ctx.strokeStyle = "#8a8886";
-      ctx.lineWidth = 5;
+      ctx.setLineDash([5, 4]);
+      const rPx = this.rangeLimit * scale;
       ctx.beginPath();
-      ctx.moveTo(cx - tangentX * scale * 3.5, cy + tangentY * scale * 3.5);
-      ctx.lineTo(cx + tangentX * scale * 3.5, cy - tangentY * scale * 3.5);
+      if (this.distanceMetric === 0) {
+        ctx.arc(pA.x, pA.y, rPx, 0, Math.PI * 2);
+      } else if (this.distanceMetric === 1) {
+        ctx.moveTo(pA.x, pA.y - rPx);
+        ctx.lineTo(pA.x + rPx, pA.y);
+        ctx.lineTo(pA.x, pA.y + rPx);
+        ctx.lineTo(pA.x - rPx, pA.y);
+        ctx.closePath();
+      } else {
+        ctx.rect(pA.x - rPx, pA.y - rPx, rPx * 2, rPx * 2);
+      }
+      ctx.fill();
       ctx.stroke();
+      ctx.restore();
 
-      const inVec = { x: -this.currentB.x, y: -this.currentB.y };
-      const dotProd = inVec.x * normA.x + inVec.y * normA.y;
-      const refVec = {
-        x: inVec.x - 2 * dotProd * normA.x,
-        y: inVec.y - 2 * dotProd * normA.y
-      };
-      const pRef = this.project(refVec, cx, cy, scale);
-      const pNormA = this.project(normA, cx, cy, scale);
-
-      this.drawArrow(ctx, pB.x, pB.y, cx, cy, colors.colorZ, "");
-      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Source Laser B (Glissez)");
-      this.drawArrow(ctx, cx, cy, pNormA.x, pNormA.y, "#fcc419", "Normale Mur A (Glissez)");
-      this.drawArrow(ctx, cx, cy, pRef.x, pRef.y, "#cc5de8", "Laser Rebondi (Reflect)");
-
-      ctx.fillStyle = "#cc5de8";
-      ctx.font = "700 14px Segoe UI, sans-serif";
-      ctx.fillText(`Reflect = Rayon rebondit symétriquement par rapport à la Normale jaune`, 18, this.height - 16);
+      this.drawArrow(ctx, pA.x, pA.y, pB.x, pB.y, col, 2.6);
+      this.drawHandle(ctx, pA.x, pA.y, colors.x, "Radar A", colors);
+      this.drawHandle(ctx, pB.x, pB.y, colors.z, "Cible B", colors, 13, 16);
+      const sqrText = this.distanceMetric === 0 ? ` | sqrMag = ${(dist * dist).toFixed(2)} vs r² = ${(this.rangeLimit ** 2).toFixed(2)}` : "";
+      this.drawStatusBanner(ctx, `${inside ? "À PORTÉE" : "Hors portée"} — d = ${dist.toFixed(2)}m (seuil ${this.rangeLimit.toFixed(1)}m)${sqrText}`, col, colors);
       return;
     }
 
     if (this.mode === "dot") {
       const guardAngle = Math.atan2(this.currentB.y, this.currentB.x);
-      ctx.fillStyle = "rgba(81, 207, 102, 0.14)";
+      ctx.fillStyle = colors.y + "18";
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, scale * 2.4, -(guardAngle + Math.PI / 4), -(guardAngle - Math.PI / 4), false);
+      ctx.arc(cx, cy, scale * 2.5, -(guardAngle + Math.PI / 4), -(guardAngle - Math.PI / 4), false);
       ctx.closePath();
       ctx.fill();
 
-      this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `Regard du Garde B`);
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Direction Joueur A`);
+      this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.z, 3);
+      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.x, 3);
+      this.drawHandle(ctx, pB.x, pB.y, colors.z, "Regard Garde B", colors);
+      this.drawHandle(ctx, pA.x, pA.y, colors.x, "Vers Joueur A", colors);
 
-      let verdict = "";
-      let vColor = "#51cf66";
-      if (this.currentDot > 0.7) {
-        verdict = `👀 Dot = ${this.currentDot.toFixed(2)} (> 0.7) : JOUEUR DANS LE CÔNE DE VISION (DÉTECTÉ !)`;
-        vColor = "#ff6b6b";
-      } else if (this.currentDot > 0.05) {
-        verdict = `⚠️ Dot = ${this.currentDot.toFixed(2)} (> 0) : DEVANT MAIS HORS CÔNE PÉRIPHÉRIQUE`;
-        vColor = "#fcc419";
-      } else if (this.currentDot >= -0.05) {
-        verdict = `📐 Dot ≈ 0 : EXACTEMENT À 90° SUR LE FLANC`;
-        vColor = "#4cc2ff";
+      const angleDeg = (Math.acos(MathEvaluator.clamp(this.currentDot / (Math.hypot(this.currentA.x, this.currentA.y) * Math.hypot(this.currentB.x, this.currentB.y) || 1), -1, 1)) * 180) / Math.PI;
+      let status = `Dot = ${this.currentDot.toFixed(3)} (${angleDeg.toFixed(1)}°) — `;
+      let col = colors.y;
+      if (this.currentDot > 0.707) { status += "DANS LE CÔNE DE VISION (Détecté)"; col = colors.x; }
+      else if (this.currentDot > 0.05) { status += "Devant, hors cône 90°"; col = colors.accent; }
+      else if (this.currentDot >= -0.05) { status += "Perpendiculaire (Angle droit 90°)"; col = colors.z; }
+      else { status += "Dans le dos du garde (Backstab)"; col = colors.y; }
+      this.drawStatusBanner(ctx, status, col, colors);
+      return;
+    }
+
+    if (this.mode === "reflect") {
+      const n = this.normalize(this.currentA);
+      const tx = -n.y, ty = n.x;
+      ctx.strokeStyle = colors.secondary;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - tx * scale * 4, cy + ty * scale * 4);
+      ctx.lineTo(cx + tx * scale * 4, cy - ty * scale * 4);
+      ctx.stroke();
+
+      const vIn = { x: -this.currentB.x, y: -this.currentB.y };
+      const vnScalar = vIn.x * n.x + vIn.y * n.y;
+      const vn = { x: vnScalar * n.x, y: vnScalar * n.y };
+      const vt = { x: vIn.x - vn.x, y: vIn.y - vn.y };
+      const vOut = {
+        x: vt.x * (1 - this.friction) - vn.x * this.restitution,
+        y: vt.y * (1 - this.friction) - vn.y * this.restitution
+      };
+
+      const pNorm = this.project(n, cx, cy, scale);
+      const pRef = this.project(vOut, cx, cy, scale);
+
+      this.drawArrow(ctx, pB.x, pB.y, cx, cy, colors.z, 2.8);
+      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, colors.accent, 2.6);
+      this.drawArrow(ctx, cx, cy, pRef.x, pRef.y, colors.aux, 3);
+
+      this.drawHandle(ctx, pB.x, pB.y, colors.z, "Rayon incident B", colors);
+      this.drawHandle(ctx, pNorm.x, pNorm.y, colors.accent, "Normale N̂", colors);
+      this.drawStatusBanner(ctx, `V' = Vt·(1-μ) - e·Vn | e=${this.restitution.toFixed(2)}, μ=${this.friction.toFixed(2)} → (${vOut.x.toFixed(2)}, ${vOut.y.toFixed(2)})`, colors.aux, colors);
+      return;
+    }
+
+    if (this.mode === "projectonplane") {
+      if (this.projectPlaneMode) {
+        const n = this.normalize(this.currentB);
+        const tx = -n.y, ty = n.x;
+        ctx.strokeStyle = colors.secondary;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx - tx * scale * 4.5, cy + ty * scale * 4.5);
+        ctx.lineTo(cx + tx * scale * 4.5, cy - ty * scale * 4.5);
+        ctx.stroke();
+
+        const d = this.currentA.x * n.x + this.currentA.y * n.y;
+        const slide = { x: this.currentA.x - d * n.x, y: this.currentA.y - d * n.y };
+        const pSlide = this.project(slide, cx, cy, scale);
+        const pNorm = this.project(n, cx, cy, scale);
+
+        this.drawArrow(ctx, pA.x, pA.y, pSlide.x, pSlide.y, colors.muted, 1.6, true);
+        this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, colors.accent, 2.4);
+        this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.x, 2.8);
+        this.drawArrow(ctx, cx, cy, pSlide.x, pSlide.y, colors.y, 3.4);
+        this.drawHandle(ctx, pNorm.x, pNorm.y, colors.accent, "Normale Pente N̂", colors);
+        this.drawHandle(ctx, pA.x, pA.y, colors.x, "Mouvement V", colors);
+        this.drawStatusBanner(ctx, `ProjectOnPlane = V - (V·N̂)N̂ = (${slide.x.toFixed(2)}, ${slide.y.toFixed(2)})`, colors.y, colors);
       } else {
-        verdict = `🥷 Dot = ${this.currentDot.toFixed(2)} (< 0) : DANS LE DOS DU GARDE (BACKSTAB)`;
-        vColor = "#51cf66";
+        const bSq = this.currentB.x ** 2 + this.currentB.y ** 2 || 1;
+        const f = this.currentDot / bSq;
+        const proj = { x: this.currentB.x * f, y: this.currentB.y * f };
+        const pProj = this.project(proj, cx, cy, scale);
+        this.drawArrow(ctx, pA.x, pA.y, pProj.x, pProj.y, colors.muted, 1.6, true);
+        this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.z, 2.6);
+        this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.x, 2.8);
+        this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, colors.accent, 3.4);
+        this.drawHandle(ctx, pA.x, pA.y, colors.x, "Vecteur A", colors);
+        this.drawHandle(ctx, pB.x, pB.y, colors.z, "Rail B", colors);
+        this.drawStatusBanner(ctx, `Project(A, B) = (${proj.x.toFixed(2)}, ${proj.y.toFixed(2)}) | Facteur = ${f.toFixed(2)}`, colors.accent, colors);
       }
-
-      ctx.fillStyle = vColor;
-      ctx.font = "700 14px Segoe UI, sans-serif";
-      ctx.fillText(verdict, 18, this.height - 16);
       return;
     }
 
-    if (this.mode === "alkashi") {
-      ctx.fillStyle = "rgba(76, 194, 255, 0.12)";
-      ctx.beginPath();
-      ctx.moveTo(pA.x, pA.y);
-      ctx.lineTo(pB.x, pB.y);
-      ctx.lineTo(pC.x, pC.y);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "#4cc2ff";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      const cLen = Math.hypot(this.currentA.x - this.currentB.x, this.currentA.y - this.currentB.y);
-      const aLen = Math.hypot(this.currentB.x - this.vecC.x, this.currentB.y - this.vecC.y);
-      const bLen = Math.hypot(this.currentA.x - this.vecC.x, this.currentA.y - this.vecC.y);
-      const cosGamma = Math.max(-1, Math.min(1, (aLen ** 2 + bLen ** 2 - cLen ** 2) / (2 * aLen * bLen || 1)));
-      const gammaDeg = (Math.acos(cosGamma) * 180) / Math.PI;
-
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, "Épaule A");
-      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, "Main B");
-      this.drawPointWithLabel(ctx, pC.x, pC.y, "#fcc419", `Coude C (Angle = ${gammaDeg.toFixed(1)}°)`);
-      return;
-    }
-
-    if (this.mode === "barycentre") {
-      const sumW = this.weightA + this.weightB + this.weightC;
-      const gx = (this.weightA * this.currentA.x + this.weightB * this.currentB.x + this.weightC * this.vecC.x) / sumW;
-      const gy = (this.weightA * this.currentA.y + this.weightB * this.currentB.y + this.weightC * this.vecC.y) / sumW;
-      const pG = this.project({ x: gx, y: gy, z: 0 }, cx, cy, scale);
-
-      ctx.strokeStyle = colors.muted;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(pA.x, pA.y);
-      ctx.lineTo(pB.x, pB.y);
-      ctx.lineTo(pC.x, pC.y);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.strokeStyle = "#cc5de8";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      for (let t = 0; t <= 1.01; t += 0.02) {
-        const u = 1 - t;
-        const bx = u * u * this.currentA.x + 2 * u * t * this.currentB.x + t * t * this.vecC.x;
-        const by = u * u * this.currentA.y + 2 * u * t * this.currentB.y + t * t * this.vecC.y;
-        const bp = this.project({ x: bx, y: by, z: 0 }, cx, cy, scale);
-        if (t === 0) ctx.moveTo(bp.x, bp.y);
-        else ctx.lineTo(bp.x, bp.y);
-      }
-      ctx.stroke();
-
-      this.drawPointWithLabel(ctx, pG.x, pG.y, "#51cf66", `Centre de Masse G (${gx.toFixed(1)}, ${gy.toFixed(1)})`);
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `A (α=${this.weightA})`);
-      this.drawPointWithLabel(ctx, pB.x, pB.y, colors.colorZ, `B (β=${this.weightB})`);
-      this.drawPointWithLabel(ctx, pC.x, pC.y, "#fcc419", `C (γ=${this.weightC})`);
-      return;
-    }
-
-    if (this.mode === "ballistic") {
-      const vx = Math.max(0.5, this.currentA.x * 3.5);
-      const vy = Math.max(0.5, this.currentA.y * 3.5);
-      ctx.strokeStyle = "#fcc419";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      for (let t = 0; t <= 4.0; t += 0.04) {
-        const x = vx * t;
-        const y = vy * t - 0.5 * this.gravity * t * t;
-        const sp = this.project({ x, y, z: 0 }, cx, cy, scale * 0.45);
-        if (t === 0) ctx.moveTo(sp.x, sp.y);
-        else ctx.lineTo(sp.x, sp.y);
-        if (y < -0.5 && t > 0.2) break;
-      }
-      ctx.stroke();
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Vitesse Initiale V0 (Glissez)`);
-      return;
-    }
-
-    if (this.mode === "vectorfield") {
-      for (let gx = -3.5; gx <= 3.5; gx += 0.7) {
-        for (let gy = -2.5; gy <= 2.5; gy += 0.7) {
-          const fx = -gy * 0.35 + (this.currentA.x - gx) * 0.15;
-          const fy = gx * 0.35 + (this.currentA.y - gy) * 0.15;
-          const s1 = this.project({ x: gx, y: gy, z: 0 }, cx, cy, scale);
-          const s2 = this.project({ x: gx + fx, y: gy + fy, z: 0 }, cx, cy, scale);
-          this.drawArrow(ctx, s1.x, s1.y, s2.x, s2.y, "#4cc2ff", "");
-        }
-      }
-      this.drawPointWithLabel(ctx, pA.x, pA.y, colors.colorX, `Vortex Nabla ∇ (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
-      return;
-    }
-
-    if (this.id === "project") {
-      const bLenSq = this.currentB.x ** 2 + this.currentB.y ** 2 || 1;
-      const projFactor = this.currentDot / bLenSq;
-      const projVec = { x: this.currentB.x * projFactor, y: this.currentB.y * projFactor, z: 0 };
-      const pProj = this.project(projVec, cx, cy, scale);
-      const distOrtho = Math.hypot(this.currentA.x - projVec.x, this.currentA.y - projVec.y);
-
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `Vecteur A`);
-      this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `Mur / Rail B`);
-      this.drawArrow(ctx, pA.x, pA.y, pProj.x, pProj.y, "#51cf66", "", true);
-      this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#fcc419", `Projeté H (Dist=${distOrtho.toFixed(2)})`);
-      return;
-    }
-
-    if (this.id === "projectonplane") {
-      const normB = this.normalize(this.currentB);
-      const tx = -normB.y, ty = normB.x;
-
-      ctx.strokeStyle = "#8a8886";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(cx - tx * scale * 5, cy + ty * scale * 5);
-      ctx.lineTo(cx + tx * scale * 5, cy - ty * scale * 5);
-      ctx.stroke();
-
-      const dot = this.currentA.x * normB.x + this.currentA.y * normB.y;
-      const projVec = { x: this.currentA.x - dot * normB.x, y: this.currentA.y - dot * normB.y };
-      
-      const pProj = this.project(projVec, cx, cy, scale);
-      const pNorm = this.project(normB, cx, cy, scale);
-
-      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, "#fcc419", "Normale Plan N");
-      this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, "Mouvement Brut V");
-      this.drawArrow(ctx, cx, cy, pProj.x, pProj.y, "#51cf66", "Glissement (ProjectOnPlane)");
-      return;
-    }
-
-    if (this.id === "rayplane") {
-      const normB = this.normalize(this.currentB);
-      const tx = -normB.y, ty = normB.x;
-
-      ctx.strokeStyle = "#8a8886";
+    if (this.mode === "rayplane") {
+      const n = this.normalize(this.currentB);
+      const tx = -n.y, ty = n.x;
+      ctx.strokeStyle = colors.secondary;
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(cx - tx * scale * 5, cy + ty * scale * 5);
       ctx.lineTo(cx + tx * scale * 5, cy - ty * scale * 5);
       ctx.stroke();
 
-      const pOrigin = this.project(this.vecC, cx, cy, scale);
-      const pNorm = this.project(normB, cx, cy, scale);
-      const pDir = this.project({ x: this.vecC.x + this.currentA.x, y: this.vecC.y + this.currentA.y }, cx, cy, scale);
+      const pO = this.project(this.vecC, cx, cy, scale);
+      const pNorm = this.project(n, cx, cy, scale);
+      const dirEnd = { x: this.vecC.x + this.vecA.x, y: this.vecC.y + this.vecA.y };
+      const pD = this.project(dirEnd, cx, cy, scale);
 
-      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, "#fcc419", "Normale N");
-      this.drawPointWithLabel(ctx, pOrigin.x, pOrigin.y, colors.colorX, "Fusil (Origine)");
-      this.drawArrow(ctx, pOrigin.x, pOrigin.y, pDir.x, pDir.y, colors.colorX, "");
+      this.drawArrow(ctx, cx, cy, pNorm.x, pNorm.y, colors.accent, 2.4);
+      this.drawArrow(ctx, pO.x, pO.y, pD.x, pD.y, colors.x, 2.6);
 
-      const denom = this.currentA.x * normB.x + this.currentA.y * normB.y;
-      if (Math.abs(denom) > 0.001) {
-        const t = -(this.vecC.x * normB.x + this.vecC.y * normB.y) / denom;
+      const denom = this.vecA.x * n.x + this.vecA.y * n.y;
+      let status = "Rayon parallèle au plan (D·N ≈ 0)";
+      let sCol = colors.muted;
+      if (Math.abs(denom) > 1e-4) {
+        const t = -(this.vecC.x * n.x + this.vecC.y * n.y) / denom;
         if (t >= 0) {
-          const hit = { x: this.vecC.x + this.currentA.x * t, y: this.vecC.y + this.currentA.y * t };
+          const hit = { x: this.vecC.x + this.vecA.x * t, y: this.vecC.y + this.vecA.y * t };
           const pHit = this.project(hit, cx, cy, scale);
-
-          ctx.setLineDash([6, 4]);
-          ctx.strokeStyle = colors.colorX;
-          ctx.beginPath(); ctx.moveTo(pOrigin.x, pOrigin.y); ctx.lineTo(pHit.x, pHit.y); ctx.stroke();
-          ctx.setLineDash([]);
-          
-          this.drawPointWithLabel(ctx, pHit.x, pHit.y, "#cc5de8", `Impact (Raycast Hit) t=${t.toFixed(1)}`);
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = colors.x;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(pO.x, pO.y);
+          ctx.lineTo(pHit.x, pHit.y);
+          ctx.stroke();
+          ctx.restore();
+          this.drawHandle(ctx, pHit.x, pHit.y, colors.aux, `Impact (${hit.x.toFixed(2)}, ${hit.y.toFixed(2)})`, colors);
+          status = `IMPACT à t = ${t.toFixed(2)} → Point (${hit.x.toFixed(2)}, ${hit.y.toFixed(2)})`;
+          sCol = colors.aux;
+        } else {
+          status = `Plan derrière le rayon (t = ${t.toFixed(2)} < 0)`;
+          sCol = colors.x;
         }
       }
+
+      this.drawHandle(ctx, pO.x, pO.y, colors.x, "Origine O", colors);
+      this.drawHandle(ctx, pD.x, pD.y, colors.z, "Direction D", colors);
+      this.drawHandle(ctx, pNorm.x, pNorm.y, colors.accent, "Normale N̂", colors);
+      this.drawStatusBanner(ctx, status, sCol, colors);
       return;
     }
 
-    const sumAB = { x: this.currentA.x + this.currentB.x, y: this.currentA.y + this.currentB.y, z: 0 };
-    const pSum = this.project(sumAB, cx, cy, scale);
-
-    ctx.fillStyle = this.currentDet >= 0 ? "rgba(81, 207, 102, 0.16)" : "rgba(255, 107, 107, 0.16)";
+    // Default: Determinant 2D (matrix)
+    const sum = { x: this.currentA.x + this.currentB.x, y: this.currentA.y + this.currentB.y };
+    const pSum = this.project(sum, cx, cy, scale);
+    const col = this.currentDet >= 0 ? colors.y : colors.x;
+    ctx.fillStyle = col + "22";
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(pA.x, pA.y);
@@ -541,15 +516,133 @@ export class VectorSandbox extends BaseSandbox {
     ctx.closePath();
     ctx.fill();
 
-    this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.colorX, `A (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`);
-    this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.colorZ, `B (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`);
-
-    ctx.fillStyle = this.currentDet >= 0 ? "#51cf66" : "#ff6b6b";
-    ctx.font = "700 14px Segoe UI, sans-serif";
-    ctx.fillText(
-      `Déterminant = ${this.currentDet.toFixed(2)} (${this.currentDet >= 0 ? "B est à GAUCHE de A" : "B est à DROITE de A"})`,
-      18,
-      this.height - 16
+    this.drawArrow(ctx, cx, cy, pA.x, pA.y, colors.x, 2.8);
+    this.drawArrow(ctx, cx, cy, pB.x, pB.y, colors.z, 2.8);
+    this.drawHandle(ctx, pA.x, pA.y, colors.x, `A (${this.currentA.x.toFixed(1)}, ${this.currentA.y.toFixed(1)})`, colors);
+    this.drawHandle(ctx, pB.x, pB.y, colors.z, `B (${this.currentB.x.toFixed(1)}, ${this.currentB.y.toFixed(1)})`, colors);
+    this.drawStatusBanner(
+      ctx,
+      `det(A, B) = ${this.currentDet.toFixed(2)} → ${this.currentDet >= 0 ? "B est à GAUCHE de A (+)" : "B est à DROITE de A (-)"}`,
+      col,
+      colors
     );
+  }
+
+  renderDeadzone(ctx, cx, cy, scale, colors) {
+    this.drawGrid(ctx, cx, cy, scale * 0.5, colors, false);
+
+    // Outer boundary
+    ctx.beginPath();
+    ctx.arc(cx, cy, scale * this.outerDeadzone, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.border;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Inner deadzone circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, scale * this.innerDeadzone, 0, Math.PI * 2);
+    ctx.fillStyle = colors.x + "22";
+    ctx.fill();
+    ctx.strokeStyle = colors.x;
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Axial deadzone cross (shown faint to contrast why radial is superior!)
+    ctx.save();
+    ctx.fillStyle = colors.muted + "16";
+    ctx.fillRect(cx - scale, cy - scale * this.innerDeadzone, scale * 2, scale * this.innerDeadzone * 2);
+    ctx.fillRect(cx - scale * this.innerDeadzone, cy - scale, scale * this.innerDeadzone * 2, scale * 2);
+    ctx.restore();
+
+    const pRaw = this.project(this.rawStick, cx, cy, scale);
+    const pScaled = this.project(this.scaledStick, cx, cy, scale);
+
+    this.drawArrow(ctx, cx, cy, pRaw.x, pRaw.y, colors.muted, 2, true);
+    if (this.scaledStick.mag > 0.001) {
+      this.drawArrow(ctx, cx, cy, pScaled.x, pScaled.y, colors.y, 3.4);
+    }
+    this.drawHandle(ctx, pRaw.x, pRaw.y, colors.accent, `Stick Brut (${this.rawStick.x.toFixed(2)}, ${this.rawStick.y.toFixed(2)})`, colors);
+
+    const rawMag = Math.hypot(this.rawStick.x, this.rawStick.y);
+    this.drawStatusBanner(
+      ctx,
+      `Brut ‖v‖=${rawMag.toFixed(2)} → Sortie Radiale Remappée ‖v'‖=${this.scaledStick.mag.toFixed(2)} (${this.scaledStick.x.toFixed(2)}, ${this.scaledStick.y.toFixed(2)})`,
+      this.scaledStick.mag > 0 ? colors.y : colors.x,
+      colors
+    );
+  }
+
+  renderMatrixTrs(ctx, cx, cy, scale, colors) {
+    this.drawGrid(ctx, cx, cy, scale, colors, true);
+
+    const rad = (this.trs.rot * Math.PI) / 180;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    const { tx, ty, sx, sy } = this.trs;
+
+    // Matrix M = T * R * S
+    const m00 = c * sx, m01 = -s * sy, m02 = tx;
+    const m10 = s * sx, m11 = c * sy, m12 = ty;
+
+    const unitQuad = [
+      { x: -0.6, y: -0.6 }, { x: 0.6, y: -0.6 },
+      { x: 0.6, y: 0.6 }, { x: -0.6, y: 0.6 }
+    ];
+
+    // Original unit quad (ghost)
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = colors.muted;
+    ctx.beginPath();
+    unitQuad.forEach((v, i) => {
+      const p = this.project(v, cx, cy, scale);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    // Transformed quad
+    const xform = (v) => ({ x: m00 * v.x + m01 * v.y + m02, y: m10 * v.x + m11 * v.y + m12 });
+    const tQuad = unitQuad.map(xform);
+    ctx.fillStyle = colors.z + "26";
+    ctx.strokeStyle = colors.z;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    tQuad.forEach((v, i) => {
+      const p = this.project(v, cx, cy, scale);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Local transformed axes (Matrix columns 0 & 1!)
+    const o = this.project({ x: tx, y: ty }, cx, cy, scale);
+    const axX = this.project({ x: tx + m00, y: ty + m10 }, cx, cy, scale);
+    const axY = this.project({ x: tx + m01, y: ty + m11 }, cx, cy, scale);
+    this.drawArrow(ctx, o.x, o.y, axX.x, axX.y, colors.x, 2.8);
+    this.drawArrow(ctx, o.x, o.y, axY.x, axY.y, colors.y, 2.8);
+    this.drawHandle(ctx, o.x, o.y, colors.accent, `Pivot (${tx.toFixed(1)}, ${ty.toFixed(1)})`, colors);
+
+    // Live 3x3 matrix overlay card
+    ctx.save();
+    ctx.fillStyle = colors.isLight ? "rgba(255,255,255,0.92)" : "rgba(22,27,34,0.92)";
+    ctx.strokeStyle = colors.border;
+    this.roundRect(ctx, 14, 14, 214, 86, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.font = '600 11.5px "SF Mono", Consolas, monospace';
+    ctx.fillStyle = colors.secondary;
+    ctx.fillText("M = T · R · S  (Colonnes = X, Y, T)", 24, 32);
+    ctx.fillStyle = colors.text;
+    ctx.fillText(`[ ${m00.toFixed(2).padStart(5)}  ${m01.toFixed(2).padStart(5)}  ${m02.toFixed(2).padStart(5)} ]`, 24, 52);
+    ctx.fillText(`[ ${m10.toFixed(2).padStart(5)}  ${m11.toFixed(2).padStart(5)}  ${m12.toFixed(2).padStart(5)} ]`, 24, 70);
+    ctx.fillStyle = colors.muted;
+    ctx.fillText(`[  0.00   0.00   1.00 ]`, 24, 88);
+    ctx.restore();
+
+    this.drawStatusBanner(ctx, `Glissez sur le canvas pour translater | det(M) = ${(sx * sy).toFixed(2)} (facteur d'aire)`, colors.z, colors);
   }
 }

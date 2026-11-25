@@ -1,0 +1,7 @@
+{
+  "name": "math-vizualizer",
+  "version": "2.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Bible mathématique interactive pour le Game Programming & Gameplay Programming"
+}
