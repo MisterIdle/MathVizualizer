@@ -3,6 +3,10 @@
 Toutes les évolutions notables de la Bible Mathématique sont documentées ici.
 Ce fichier est mis à jour automatiquement par `release.py`.
 
+## [4.0.0] - 25.11.2026
+### Refonte Majeure
+- Refonte visuelle Apple Glass inspirée de Music
+
 ## [3.0.0] - 25.11.2026
 ### Refonte Majeure
 - Refonte visuelle style GitBook, suppression progression et fix cache modules

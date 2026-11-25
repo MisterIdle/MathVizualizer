@@ -1,4 +1,4 @@
-import { ICONS } from "./Icons.js";
+import { ICONS } from "./Icons.js?v=2.2";
 
 const STORAGE_KEY = "mv_theme_v2";
 
@@ -24,7 +24,9 @@ export class ThemeManager {
   static syncButton(btn, theme) {
     if (!btn) return;
     btn.innerHTML = theme === "dark" ? ICONS.sun : ICONS.moon;
-    btn.setAttribute("title", theme === "dark" ? "Passer en thème clair" : "Passer en thème sombre");
-    btn.setAttribute("aria-label", theme === "dark" ? "Thème clair" : "Thème sombre");
+    btn.classList.toggle("is-sun", theme === "dark");
+    btn.classList.toggle("is-moon", theme !== "dark");
+    btn.setAttribute("title", theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre");
+    btn.setAttribute("aria-label", theme === "dark" ? "Mode clair" : "Mode sombre");
   }
 }

@@ -6,82 +6,89 @@
   <meta name="description" content="Bible Mathématique interactive du Game Programming & Gameplay Programming — 76 concepts visuels pour Unity, Godot, Unreal (C++ & Blueprint), C# et C++.">
   <link rel="icon" href="./icon/pie.png" type="image/png">
   <title>Math Vizualizer — Bible Mathématique Game &amp; Gameplay</title>
-  <link rel="stylesheet" href="./css/tokens.css?v=2.1">
-  <link rel="stylesheet" href="./css/base.css?v=2.1">
-  <link rel="stylesheet" href="./css/home.css?v=2.1">
+  <link rel="stylesheet" href="./css/tokens.css?v=2.2">
+  <link rel="stylesheet" href="./css/base.css?v=2.2">
+  <link rel="stylesheet" href="./css/home.css?v=2.2">
 </head>
 <body>
-  <header class="gb-header">
-    <div class="gb-header-inner">
-      <a href="./index.html" class="gb-brand">
-        <span class="gb-brand-logo">π</span>
-        <span class="gb-brand-name">Math Vizualizer</span>
-        <span class="gb-brand-meta">Game &amp; Gameplay Programming</span>
-      </a>
+  <header class="mv-nav">
+    <div class="mv-nav-inner">
+      <div class="mv-nav-left">
+        <a href="./index.html" class="mv-brand">
+          <span class="mv-brand-icon">π</span>
+          <div class="mv-brand-text">
+            <span class="mv-brand-title">Math Vizualizer</span>
+            <span class="mv-brand-sub">Bible Mathématique Game &amp; Gameplay</span>
+          </div>
+        </a>
 
-      <div class="gb-header-actions">
-        <button type="button" id="gb-search-trigger" class="gb-search-btn" aria-label="Rechercher">
-          <span id="gb-search-icon"></span>
-          <span>Rechercher...</span>
-          <kbd class="gb-kbd">Ctrl K</kbd>
+        <nav class="mv-seg-nav" id="mv-top-dims" aria-label="Dimensions rapides"></nav>
+      </div>
+
+      <div class="mv-nav-right">
+        <button type="button" id="mv-search-trigger" class="mv-search-pill" aria-label="Rechercher">
+          <span id="mv-search-icon"></span>
+          <span>Rechercher un concept...</span>
+          <kbd class="mv-kbd">Ctrl K</kbd>
         </button>
-        <button type="button" id="gb-theme-toggle" class="gb-btn gb-btn-icon" aria-label="Changer de thème"></button>
+        <button type="button" id="mv-theme-toggle" class="mv-circle-btn" aria-label="Changer de thème"></button>
       </div>
     </div>
   </header>
 
-  <div class="gb-shell">
-    <aside class="gb-sidebar" aria-label="Navigation de la documentation">
-      <div class="gb-sidebar-head">
-        <a href="./index.html" class="gb-sidebar-home-link is-active">Tous les concepts (76)</a>
-        <input type="search" id="gb-sidebar-filter" class="gb-sidebar-filter" placeholder="Filtrer le sommaire...">
-      </div>
-      <nav id="gb-sidebar-tree" class="gb-sidebar-tree"></nav>
-    </aside>
-
-    <main class="gb-home-main">
-      <header class="gb-home-intro">
-        <h1 class="gb-home-title">Bible Mathématique du Jeu Vidéo</h1>
-        <p class="gb-home-desc">
-          76 concepts mathématiques essentiels en Game &amp; Gameplay Programming, chacun avec sa page dédiée, son playground interactif et son code temps réel.
+  <main class="mv-home">
+    <!-- Compact Apple Glass Hero (Music HomeMenu style) -->
+    <section class="apple-glass mv-hero-glass">
+      <div>
+        <div class="mv-hero-badge">76 concepts interactifs · 1 page par concept</div>
+        <h1 class="mv-hero-title">Toutes les maths du Game &amp; Gameplay Programming.</h1>
+        <p class="mv-hero-desc">
+          Visualise concrètement la logique derrière chaque vecteur, quaternion, collision, courbe et shader — avec le code temps réel multi-moteurs.
         </p>
-        <div class="gb-engines-line">
-          <span>Unity C#</span>
-          <span>Godot 4 (C# &amp; GDScript)</span>
-          <span>Unreal C++</span>
-          <span>Unreal Blueprint</span>
-          <span>C# .NET</span>
-          <span>C++ GLM</span>
-        </div>
-      </header>
-
-      <div class="gb-filter-bar">
-        <div class="gb-dim-tabs" id="gb-dim-tabs" role="tablist" aria-label="Filtrer par dimension"></div>
-        <div class="gb-filter-right">
-          <input type="search" id="gb-inline-filter" class="gb-inline-search" placeholder="Filtrer (Dot, Slerp, SAT, Perlin)...">
-          <select id="gb-tag-select" class="gb-select" aria-label="Besoin gameplay">
-            <option value="all">Tous les besoins</option>
-          </select>
-        </div>
       </div>
 
-      <div id="gb-sections" class="gb-sections"></div>
-    </main>
-  </div>
+      <div class="mv-hero-engines">
+        <span class="mv-hero-engine-pill">Unity C#</span>
+        <span class="mv-hero-engine-pill">Godot C# &amp; GDScript</span>
+        <span class="mv-hero-engine-pill">Unreal C++</span>
+        <span class="mv-hero-engine-pill">Unreal Blueprint</span>
+        <span class="mv-hero-engine-pill">C# .NET</span>
+        <span class="mv-hero-engine-pill">C++ GLM</span>
+      </div>
+    </section>
 
-  <footer class="gb-footer">
-    <div class="gb-footer-inner">
-      <div class="gb-footer-group">
+    <!-- Search & Inverted Pill Filters (Music HomeMenu style) -->
+    <div class="mv-controls-row">
+      <div class="mv-search-box">
+        <span id="mv-inline-search-icon"></span>
+        <input type="search" id="mv-inline-filter" class="mv-search-input" placeholder="Rechercher un concept, une formule, un moteur (Dot, Slerp, SAT, Perlin)...">
+      </div>
+
+      <div class="mv-pills-bar">
+        <div class="mv-pills-bar" id="mv-dim-pills" role="tablist" aria-label="Filtrer par dimension"></div>
+        <select id="mv-tag-select" class="mv-need-select" aria-label="Besoin gameplay">
+          <option value="all">Tous les besoins</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Concepts Grid directly below -->
+    <div id="mv-sections" class="mv-sections"></div>
+  </main>
+
+  <footer class="mv-footer">
+    <div class="mv-footer-inner">
+      <div class="mv-footer-group">
         <span>&copy; 2026 <strong>Alexy Houbloup</strong> (MisterIdle)</span>
-        <span class="gb-version-pill"><!-- MV_VERSION -->v3.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
+        <span class="mv-version-pill"><!-- MV_VERSION -->v4.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
       </div>
-      <div class="gb-footer-group">
+      <div class="mv-footer-group">
         <a href="https://github.com/MisterIdle/MathVizualizer" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://misteridle.itch.io/" target="_blank" rel="noopener noreferrer">Itch.io</a>
       </div>
     </div>
   </footer>
 
-  <script type="module" src="./js/homePage.js?v=2.1"></script>
+  <script type="module" src="./js/homePage.js?v=2.2"></script>
 </body>
 </html>

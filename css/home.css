@@ -1,81 +1,138 @@
 /* ==========================================================================
-   Math Vizualizer — Main Page (GitBook Index: Concepts First, Zero Clutter)
+   Math Vizualizer — Main Page (80% Music HomeMenu.tsx Apple Glass Aesthetic)
+   Direct, uncluttered access to all 76 Game & Gameplay Math concepts.
    ========================================================================== */
 
-.gb-home-main {
-  padding: 36px 48px 72px;
-  min-width: 0;
-  max-width: 1120px;
+.mv-home {
+  max-width: 1360px;
   width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Crisp Page Intro (Compact, scannable in 1 second) */
-.gb-home-intro {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 24px;
-}
-
-.gb-home-title {
-  font-size: clamp(26px, 2.8vw, 34px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.18;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.gb-home-desc {
-  font-size: 15px;
-  color: var(--text-secondary);
-  max-width: 680px;
-}
-
-.gb-engines-line {
+/* Compact Apple Glass Hero Banner (mirrors Music HomeMenu.tsx rounded-[30px]) */
+.mv-hero-glass {
+  border-radius: 30px;
+  padding: 26px 32px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.gb-engines-line span {
-  padding: 2px 9px;
-  border-radius: 99px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* Single Clean Filter Bar — Directly Above Concepts */
-.gb-filter-bar {
-  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: 20px;
 }
 
-.gb-dim-tabs {
+.mv-hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.mv-hero-title {
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.mv-hero-desc {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  max-width: 650px;
+}
+
+.mv-hero-engines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  max-width: 390px;
+  justify-content: flex-end;
+}
+
+.mv-hero-engine-pill {
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-pill);
+  border: 1px solid var(--border-hairline);
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--text-secondary);
+}
+
+/* Search & Pill Filters Row (Exact Music HomeMenu.tsx structure) */
+.mv-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mv-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 420px;
+}
+
+.mv-search-box svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.mv-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 16px 0 40px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color var(--ease);
+}
+
+.mv-search-input:focus {
+  border-color: var(--accent);
+}
+
+.mv-search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.mv-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
-.gb-dim-tab {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
+/* Signature Music Inverted Active Pill */
+.mv-pill-btn {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
   border: 1px solid transparent;
-  background: transparent;
+  background: var(--bg-pill);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 550;
   cursor: pointer;
   display: inline-flex;
@@ -84,171 +141,222 @@
   transition: all var(--ease);
 }
 
-.gb-dim-tab:hover {
-  background: var(--bg-hover);
+.mv-pill-btn:hover {
+  background: var(--bg-pill-hover);
   color: var(--text-primary);
 }
 
-.gb-dim-tab.is-active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: var(--accent-border);
+.mv-pill-btn.is-active {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  font-weight: 650;
 }
 
-.gb-dim-count {
+.mv-pill-count {
   font-family: var(--font-mono);
   font-size: 11px;
-  opacity: 0.78;
+  opacity: 0.7;
 }
 
-.gb-filter-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.gb-inline-search {
-  height: 32px;
-  padding: 0 11px;
-  width: 220px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: var(--bg-page);
-  color: var(--text-primary);
-  font-size: 13px;
-  outline: none;
-}
-
-.gb-inline-search:focus {
-  border-color: var(--accent);
-}
-
-.gb-select {
-  height: 32px;
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: var(--bg-page);
+.mv-need-select {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-surface);
   color: var(--text-primary);
   font-size: 12.5px;
+  font-weight: 550;
   cursor: pointer;
   outline: none;
 }
 
-.gb-select:focus {
+.mv-need-select:focus {
   border-color: var(--accent);
 }
 
-/* Concept Sections — GitBook Clarity */
-.gb-sections {
+/* Categories & Apple Glass Concept Cards */
+.mv-sections {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 34px;
 }
 
-.gb-section-head {
-  margin-bottom: 14px;
-}
-
-.gb-section-title-row {
+.mv-cat-head {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 3px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
-.gb-section-num {
+.mv-cat-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.mv-cat-num {
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent);
 }
 
-.gb-section-title {
-  font-size: 18px;
-  font-weight: 650;
+.mv-cat-title {
+  font-size: 19px;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
-.gb-section-desc {
-  font-size: 13.5px;
-  color: var(--text-muted);
+.mv-cat-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-/* Clean GitBook Concept Cards Grid */
-.gb-grid {
+/* 3-column Music-style Apple Glass Card Grid */
+.mv-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
+  gap: 16px;
 }
 
-.gb-card {
+.mv-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 15px 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  background: var(--bg-page);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--bg-surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-soft);
   color: var(--text-primary);
   text-decoration: none;
-  transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
+  transition: transform var(--ease), border-color var(--ease), box-shadow var(--ease);
 }
 
-.gb-card:hover {
+.mv-card:hover {
+  transform: translateY(-2px) scale(1.008);
   border-color: var(--accent-border);
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
 }
 
-.gb-card-top {
+/* Clean visual formula header box (mirrors Music mosaic top container) */
+.mv-card-preview {
+  position: relative;
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-hairline);
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 10px;
 }
 
-.gb-card-title {
-  font-size: 14.5px;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-  color: var(--text-primary);
-  line-height: 1.3;
+.mv-card-preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.gb-card-sub {
-  font-size: 12.8px;
-  color: var(--text-secondary);
-  line-height: 1.45;
+.mv-card-glyph {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 3px 9px;
+  border-radius: 9px;
+  background: var(--accent-soft);
 }
 
-.gb-card-formula {
-  margin-top: auto;
-  padding-top: 6px;
+.mv-card-formula {
   font-family: var(--font-mono);
   font-size: 11.5px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.gb-empty {
-  padding: 48px 20px;
-  text-align: center;
-  border: 1px dashed var(--border-default);
-  border-radius: var(--radius-md);
+.mv-card-body {
+  padding: 0 2px;
+}
+
+.mv-card-title {
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  line-height: 1.25;
+  transition: color var(--ease);
+}
+
+.mv-card:hover .mv-card-title {
+  color: var(--accent);
+}
+
+.mv-card-sub {
+  font-size: 12.8px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.mv-card-foot {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
   color: var(--text-secondary);
 }
 
-@media (max-width: 960px) {
-  .gb-home-main {
-    padding: 24px 18px 56px;
+.mv-card-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.mv-card-arrow {
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: transform var(--ease), color var(--ease);
+}
+
+.mv-card:hover .mv-card-arrow {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+
+.mv-empty {
+  border-radius: 28px;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 720px) {
+  .mv-home {
+    padding: 18px 14px 48px;
   }
-  .gb-inline-search {
-    width: 100%;
+  .mv-hero-glass {
+    padding: 20px;
+    border-radius: 24px;
+  }
+  .mv-hero-engines {
+    justify-content: flex-start;
+  }
+  .mv-cards-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -6,41 +6,50 @@
   <meta name="description" content="Approximately &amp; Précision Flottante : IEEE 754, epsilon relatif et jitter en monde ouvert — Playground interactif et code temps réel Unity, Godot, Unreal (C++ &amp; Blueprint), C# et C++.">
   <link rel="icon" href="../icon/pie.png" type="image/png">
   <title>Approximately &amp; Précision Flottante — Math Vizualizer</title>
-  <link rel="stylesheet" href="../css/tokens.css?v=3.0.0">
-  <link rel="stylesheet" href="../css/base.css?v=3.0.0">
-  <link rel="stylesheet" href="../css/concept.css?v=3.0.0">
+  <link rel="stylesheet" href="../css/tokens.css?v=4.0.0-ag">
+  <link rel="stylesheet" href="../css/base.css?v=4.0.0-ag">
+  <link rel="stylesheet" href="../css/concept.css?v=4.0.0-ag">
 </head>
 <body data-concept-id="approximately-epsilon">
-  <header class="gb-header">
-    <div class="gb-header-inner">
-      <a href="../index.html" class="gb-brand">
-        <span class="gb-brand-logo">π</span>
-        <span class="gb-brand-name">Math Vizualizer</span>
-        <span class="gb-brand-meta">Game &amp; Gameplay Programming</span>
-      </a>
+  <header class="mv-nav">
+    <div class="mv-nav-inner">
+      <div class="mv-nav-left">
+        <a href="../index.html" class="mv-brand">
+          <span class="mv-brand-icon">π</span>
+          <div class="mv-brand-text">
+            <span class="mv-brand-title">Math Vizualizer</span>
+            <span class="mv-brand-sub">Bible Mathématique Game &amp; Gameplay</span>
+          </div>
+        </a>
 
-      <div class="gb-header-actions">
-        <button type="button" id="gb-search-trigger" class="gb-search-btn" aria-label="Rechercher">
-          <span id="gb-search-icon"></span>
-          <span>Rechercher...</span>
-          <kbd class="gb-kbd">Ctrl K</kbd>
+        <nav class="mv-seg-nav" aria-label="Navigation">
+          <a href="../index.html" class="mv-seg-item">← Tous les concepts</a>
+          <span class="mv-seg-item is-active">Approximately &amp; Précision Flottante</span>
+        </nav>
+      </div>
+
+      <div class="mv-nav-right">
+        <button type="button" id="mv-search-trigger" class="mv-search-pill" aria-label="Rechercher">
+          <span id="mv-search-icon"></span>
+          <span>Rechercher un concept...</span>
+          <kbd class="mv-kbd">Ctrl K</kbd>
         </button>
-        <button type="button" id="gb-theme-toggle" class="gb-btn gb-btn-icon" aria-label="Changer de thème"></button>
+        <button type="button" id="mv-theme-toggle" class="mv-circle-btn" aria-label="Changer de thème"></button>
       </div>
     </div>
   </header>
 
-  <div class="gb-shell has-toc">
-    <aside class="gb-sidebar" aria-label="Sommaire de la bible">
-      <div class="gb-sidebar-head">
-        <a href="../index.html" class="gb-sidebar-home-link">← Tous les concepts (76)</a>
-        <input type="search" id="gb-sidebar-filter" class="gb-sidebar-filter" placeholder="Filtrer le sommaire...">
+  <div class="mv-doc-shell">
+    <aside class="apple-glass mv-sidebar" aria-label="Sommaire des concepts">
+      <div class="mv-sidebar-head">
+        <a href="../index.html" class="mv-sidebar-back">← Tous les concepts (76)</a>
+        <input type="search" id="mv-sidebar-filter" class="mv-sidebar-input" placeholder="Filtrer...">
       </div>
-      <nav id="gb-sidebar-tree" class="gb-sidebar-tree"></nav>
+      <nav id="mv-sidebar-tree" class="mv-sidebar-tree"></nav>
     </aside>
 
-    <main class="gb-doc-main">
-      <article id="gb-article-root" class="gb-article">
+    <main>
+      <article id="mv-article-root" class="mv-article">
         <noscript>
           <h1>Approximately &amp; Précision Flottante</h1>
           <p>IEEE 754, epsilon relatif et jitter en monde ouvert</p>
@@ -49,29 +58,27 @@
       </article>
     </main>
 
-    <aside class="gb-toc" aria-label="Sur cette page">
-      <div class="gb-toc-inner">
-        <div class="gb-toc-title">Sur cette page</div>
-        <ul class="gb-toc-list">
-          <li><a href="#sec-def">Définition &amp; Formule</a></li>
-          <li><a href="#sec-sandbox">Playground Interactif</a></li>
-          <li><a href="#sec-code">Code Multi-Moteurs</a></li>
-          <li><a href="#sec-live">Valeurs en Direct</a></li>
-          <li><a href="#sec-examples">Cas d'Usage</a></li>
-          <li><a href="#sec-pitfalls">Pièges Classiques</a></li>
-          <li><a href="#sec-related">Concepts Liés</a></li>
-        </ul>
-      </div>
+    <aside class="apple-glass mv-toc" aria-label="Sur cette page">
+      <div class="mv-toc-title">Sur cette page</div>
+      <ul class="mv-toc-list">
+        <li><a href="#sec-def">Définition &amp; Formule</a></li>
+        <li><a href="#sec-sandbox">Playground Interactif</a></li>
+        <li><a href="#sec-code">Code Multi-Moteurs</a></li>
+        <li><a href="#sec-live">Valeurs en Direct</a></li>
+        <li><a href="#sec-examples">Cas d'Usage</a></li>
+        <li><a href="#sec-pitfalls">Pièges Classiques</a></li>
+        <li><a href="#sec-related">Concepts Liés</a></li>
+      </ul>
     </aside>
   </div>
 
-  <footer class="gb-footer">
-    <div class="gb-footer-inner">
-      <div class="gb-footer-group">
+  <footer class="mv-footer">
+    <div class="mv-footer-inner">
+      <div class="mv-footer-group">
         <span>&copy; 2026 <strong>Alexy Houbloup</strong> (MisterIdle)</span>
-        <span class="gb-version-pill"><!-- MV_VERSION -->v3.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
+        <span class="mv-version-pill"><!-- MV_VERSION -->v4.0.0 (25.11.2026)<!-- /MV_VERSION --></span>
       </div>
-      <div class="gb-footer-group">
+      <div class="mv-footer-group">
         <a href="../index.html">Tous les concepts</a>
         <a href="https://github.com/MisterIdle/MathVizualizer" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://misteridle.itch.io/" target="_blank" rel="noopener noreferrer">Itch.io</a>
@@ -79,6 +86,6 @@
     </div>
   </footer>
 
-  <script type="module" src="../js/conceptPage.js?v=3.0.0"></script>
+  <script type="module" src="../js/conceptPage.js?v=4.0.0-ag"></script>
 </body>
 </html>

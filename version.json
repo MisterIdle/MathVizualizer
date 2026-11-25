@@ -1,8 +1,14 @@
 {
-  "version": "3.0.0",
+  "version": "4.0.0",
   "date": "25.11.2026",
   "conceptsCount": 76,
   "history": [
+    {
+      "version": "4.0.0",
+      "date": "25.11.2026",
+      "type": "major",
+      "summary": "Refonte visuelle Apple Glass inspirée de Music"
+    },
     {
       "version": "3.0.0",
       "date": "25.11.2026",

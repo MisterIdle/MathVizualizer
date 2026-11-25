@@ -1,23 +1,30 @@
 /* ==========================================================================
-   Math Vizualizer — GitBook-Inspired Documentation Design System
-   Clean, calm, immediately scannable at first glance.
+   Math Vizualizer — Apple Glass Design Tokens (80% Music / TierStudio DNA)
    ========================================================================== */
 
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text",
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", ui-monospace,
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Inter", system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code", ui-monospace,
     Menlo, Consolas, monospace;
 
-  --header-h: 58px;
-  --sidebar-w: 272px;
-  --toc-w: 224px;
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --header-h: 64px;
+  --sidebar-w: 274px;
+  --toc-w: 210px;
 
-  --ease: 150ms cubic-bezier(0.2, 0, 0, 1);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 9999px;
+
+  --ease: 180ms cubic-bezier(0.2, 0, 0, 1);
+
+  /* Accent Apple Blue */
+  --accent: #007aff;
+  --accent-hover: #0066d6;
+  --accent-soft: rgba(0, 122, 255, 0.13);
+  --accent-border: rgba(0, 122, 255, 0.38);
 
   /* Unreal Engine 5 Blueprint Pin Colors */
   --ue-pin-exec: #ffffff;
@@ -32,125 +39,127 @@
   --ue-pin-struct: #3b82f6;
 }
 
-/* GitBook Dark Theme — Soft Slate, Zero Harsh Black */
+/* Dark Mode — Identical palette to Music/TierStudio */
 :root[data-theme="dark"],
 :root:not([data-theme]) {
   color-scheme: dark;
 
-  --bg-page: #111318;
-  --bg-sidebar: #14171e;
-  --bg-surface: #181c25;
-  --bg-elevated: #1e232f;
-  --bg-code: #0e1015;
-  --bg-sandbox: #0f1218;
-  --bg-header: rgba(17, 19, 24, 0.88);
-  --bg-hover: rgba(255, 255, 255, 0.045);
+  --bg-canvas: #09090b;
+  --bg-surface: rgba(24, 24, 28, 0.72);
+  --bg-surface-solid: #16161a;
+  --bg-elevated: rgba(32, 32, 38, 0.88);
+  --bg-code: rgba(12, 12, 16, 0.85);
+  --bg-sandbox: #0d0d11;
+  --bg-pill: rgba(255, 255, 255, 0.075);
+  --bg-pill-hover: rgba(255, 255, 255, 0.125);
+  --bg-subtle: rgba(255, 255, 255, 0.04);
 
-  --text-primary: #eef1f6;
-  --text-secondary: #9aa4b5;
-  --text-muted: #6c7688;
+  --border-hairline: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-default: rgba(255, 255, 255, 0.09);
 
-  --border-subtle: #1f2430;
-  --border-default: #272d3b;
-  --border-strong: #374054;
+  --text-primary: #f5f5f7;
+  --text-secondary: #98989f;
+  --text-muted: #76767f;
 
-  --accent: #4c8dff;
-  --accent-hover: #6ba1ff;
-  --accent-soft: rgba(76, 141, 255, 0.12);
-  --accent-border: rgba(76, 141, 255, 0.34);
+  --shadow-soft: 0 18px 45px -16px rgba(0, 0, 0, 0.65), 0 4px 14px -4px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 24px 64px -12px rgba(0, 0, 0, 0.78);
 
-  /* GitBook Hint Callouts */
-  --hint-info-bg: rgba(76, 141, 255, 0.08);
-  --hint-info-border: #4c8dff;
-  --hint-tip-bg: rgba(52, 211, 153, 0.08);
-  --hint-tip-border: #34d399;
-  --hint-warn-bg: rgba(245, 158, 11, 0.09);
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-soft: rgba(59, 130, 246, 0.15);
+  --accent-border: rgba(59, 130, 246, 0.42);
+
+  /* Callouts */
+  --hint-info-bg: rgba(59, 130, 246, 0.1);
+  --hint-info-border: #3b82f6;
+  --hint-tip-bg: rgba(16, 185, 129, 0.1);
+  --hint-tip-border: #10b981;
+  --hint-warn-bg: rgba(245, 158, 11, 0.1);
   --hint-warn-border: #f59e0b;
 
   /* Dimension Tags */
   --tag-2d-fg: #34d399;
-  --tag-2d-bg: rgba(52, 211, 153, 0.1);
+  --tag-2d-bg: rgba(16, 185, 129, 0.14);
   --tag-3d-fg: #60a5fa;
-  --tag-3d-bg: rgba(96, 165, 250, 0.12);
+  --tag-3d-bg: rgba(59, 130, 246, 0.15);
   --tag-2d3d-fg: #c084fc;
-  --tag-2d3d-bg: rgba(192, 132, 252, 0.12);
+  --tag-2d3d-bg: rgba(168, 85, 247, 0.15);
   --tag-gen-fg: #fbbf24;
-  --tag-gen-bg: rgba(251, 191, 36, 0.11);
+  --tag-gen-bg: rgba(245, 158, 11, 0.14);
 
   /* Canvas Semantic Math Colors */
-  --math-x: #f87171;
-  --math-y: #34d399;
-  --math-z: #60a5fa;
-  --math-accent: #fbbf24;
-  --math-aux: #c084fc;
-  --math-grid: #1b202b;
-  --math-axis: #3a4356;
+  --math-x: #ff453a;
+  --math-y: #30d158;
+  --math-z: #0a84ff;
+  --math-accent: #ffd60a;
+  --math-aux: #bf5af2;
+  --math-grid: rgba(255, 255, 255, 0.055);
+  --math-axis: rgba(255, 255, 255, 0.22);
 
   /* Syntax Highlighting */
   --syn-kw: #ff7b72;
   --syn-type: #79c0ff;
-  --syn-num: #9ecbff;
-  --syn-cm: #7d8799;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --shadow-modal: 0 20px 56px rgba(0, 0, 0, 0.6);
+  --syn-num: #a5d6ff;
+  --syn-cm: #8e8e98;
 }
 
-/* GitBook Signature Light Theme */
+/* Light Mode — Identical palette to Music/TierStudio */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-page: #ffffff;
-  --bg-sidebar: #fbfcfd;
-  --bg-surface: #f8fafc;
-  --bg-elevated: #ffffff;
-  --bg-code: #f6f8fa;
-  --bg-sandbox: #fafbfc;
-  --bg-header: rgba(255, 255, 255, 0.9);
-  --bg-hover: rgba(15, 23, 42, 0.04);
+  --bg-canvas: #f4f5f7;
+  --bg-surface: rgba(255, 255, 255, 0.78);
+  --bg-surface-solid: #ffffff;
+  --bg-elevated: rgba(255, 255, 255, 0.92);
+  --bg-code: rgba(245, 246, 250, 0.92);
+  --bg-sandbox: #fafbfd;
+  --bg-pill: rgba(15, 23, 42, 0.055);
+  --bg-pill-hover: rgba(15, 23, 42, 0.1);
+  --bg-subtle: rgba(15, 23, 42, 0.035);
 
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  --border-hairline: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --border-default: rgba(15, 23, 42, 0.08);
 
-  --border-subtle: #edf0f4;
-  --border-default: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --text-primary: #111114;
+  --text-secondary: #6e6e73;
+  --text-muted: #86868b;
 
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: rgba(37, 99, 235, 0.08);
-  --accent-border: rgba(37, 99, 235, 0.28);
+  --shadow-soft: 0 10px 35px -12px rgba(15, 23, 42, 0.12), 0 2px 10px -3px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 24px 64px -12px rgba(15, 23, 42, 0.2);
 
-  --hint-info-bg: #eff6ff;
-  --hint-info-border: #3b82f6;
-  --hint-tip-bg: #ecfdf5;
-  --hint-tip-border: #10b981;
-  --hint-warn-bg: #fffbeb;
-  --hint-warn-border: #f59e0b;
+  --accent: #007aff;
+  --accent-hover: #0062cc;
+  --accent-soft: rgba(0, 122, 255, 0.1);
+  --accent-border: rgba(0, 122, 255, 0.35);
+
+  --hint-info-bg: rgba(0, 122, 255, 0.08);
+  --hint-info-border: #007aff;
+  --hint-tip-bg: rgba(52, 199, 89, 0.1);
+  --hint-tip-border: #34c759;
+  --hint-warn-bg: rgba(255, 149, 0, 0.1);
+  --hint-warn-border: #ff9500;
 
   --tag-2d-fg: #059669;
-  --tag-2d-bg: #ecfdf5;
-  --tag-3d-fg: #2563eb;
-  --tag-3d-bg: #eff6ff;
+  --tag-2d-bg: rgba(16, 185, 129, 0.12);
+  --tag-3d-fg: #007aff;
+  --tag-3d-bg: rgba(0, 122, 255, 0.11);
   --tag-2d3d-fg: #7c3aed;
-  --tag-2d3d-bg: #f5f3ff;
-  --tag-gen-fg: #b45309;
-  --tag-gen-bg: #fffbeb;
+  --tag-2d3d-bg: rgba(124, 58, 237, 0.11);
+  --tag-gen-fg: #c27803;
+  --tag-gen-bg: rgba(245, 158, 11, 0.13);
 
-  --math-x: #dc2626;
-  --math-y: #059669;
-  --math-z: #2563eb;
+  --math-x: #ff3b30;
+  --math-y: #28a745;
+  --math-z: #007aff;
   --math-accent: #d97706;
-  --math-aux: #7c3aed;
-  --math-grid: #eef2f6;
-  --math-axis: #94a3b8;
+  --math-aux: #af52de;
+  --math-grid: rgba(15, 23, 42, 0.06);
+  --math-axis: rgba(15, 23, 42, 0.25);
 
-  --syn-kw: #cf222e;
-  --syn-type: #0550ae;
-  --syn-num: #0550ae;
-  --syn-cm: #6b7280;
-
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-modal: 0 20px 56px rgba(15, 23, 42, 0.16);
+  --syn-kw: #d73a49;
+  --syn-type: #005cc5;
+  --syn-num: #005cc5;
+  --syn-cm: #6e6e73;
 }
